@@ -1,0 +1,187 @@
+/* ==========================================
+   1. REGLAS GLOBALES Y CONFIGURACIÓN DE PANTALLA
+   ========================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+}
+/* Centrado absoluto en PC y adaptabilidad total en celulares */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f4f6f9; /* Gris moderno muy suave */
+    padding: 15px;
+}
+/* ==========================================
+   2. CONTENEDOR MAESTRO: LA TARJETA
+   ========================================== */
+.tarjeta_modulo {
+    position: relative;       /* Clave para fijar los botones de las esquinas (🏠 y 🛣️) */
+    background: #ffffff;
+    padding: 30px;
+    border-radius: 12px;      /* Bordes redondeados modernos */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08); /* Sombra elegante */
+    width: 100%;
+    max-width: 460px;         /* Tamaño compacto ideal para operar desde el carro */
+}
+/* Títulos principales dentro de cualquier módulo */
+.tarjeta_modulo h1 {
+    text-align: center;
+}
+.tarjeta_modulo h2 {
+    color: #222;
+    font-size: 1.4rem;
+    margin-bottom: 6px;
+    margin-top: 10px;         /* Espacio por si hay botones arriba */
+    text-align: center;
+}
+.tarjeta_modulo h3 {
+    font-size: 0.95rem;
+    color: #4a525d;
+    text-align: center;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+/* Subtítulos o textos descriptivos cortos */
+.tarjeta_modulo p {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 20px;
+    text-align: center;
+}
+/* ==========================================
+   3. ELEMENTOS DE FORMULARIO ESTÁNDAR
+   ========================================== */
+.input_group {
+    display: flex;
+    flex-direction: column;   /* Apila la etiqueta encima de la caja de texto */
+    margin-bottom: 14px;
+}
+.input_group label {
+    font-size: 0.88rem;
+    font-weight: bold;
+    color: #444;
+    margin-bottom: 5px;
+}
+/* Cajas de texto, números y menús desplegables unificados */
+.input_group input, 
+.input_group select {
+    padding: 11px 14px;
+    border: 1px solid #ccd1d9;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    color: #333;
+    background-color: #fff;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.2s;
+}
+/* Efecto visual cuando el conductor hace clic en el campo */
+.input_group input:focus, 
+.input_group select:focus {
+    border-color: #1976d2; /* Azul sutil de enfoque */
+}
+/* ==========================================
+   3. BOTÓN HOME FLOTANTE INTERNO
+   ========================================== */
+.btn_home_tarjeta {
+    position: absolute;
+    top: 15px;
+    left: 15px;          
+    font-size: 1.3rem;
+    text-decoration: none;
+    color: #333;
+    opacity: 0.6;
+    transition: opacity 0.2s, transform 0.2s;
+}
+.btn_home_tarjeta:hover {
+    opacity: 1;
+    transform: scale(1.1);
+}
+/* Selector de tráfico discreto superior derecho */
+.select_trafic {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    font-size: 1.2rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: auto !important; /* Evita que ocupe todo el ancho */
+    padding: 0;
+    opacity: 0.7;
+    outline: none;
+}
+.select_trafic:hover {
+    opacity: 1;
+}
+.section_title {
+    text-align: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #64748b;
+    margin: 15px 0 8px 0;
+    border-left: 3px solid var(--accent);
+    padding-left: 8px;
+}
+.result_box {
+    margin-top: 15px;
+    padding: 15px;
+    background-color: #f1f5f9;
+    border-radius: 8px;
+    border: 1px dashed #cbd5e1;
+    display: none;
+}
+.total_highlight {
+    font-size: 1.6rem;
+    font-weight: bold;
+    color: #16a34a;
+    text-align: center;
+    margin-bottom: 10px;
+}
+.summary_text {
+    font-size: 0.88rem;
+    white-space: pre-line;
+    line-height: 1.5;
+}
+.loading {
+    text-align: center;
+    color: var(--accent);
+    font-weight: bold;
+    display: none;
+    margin: 10px 0;
+}
+/* ==========================================
+   4. BOTONES Y ACCIONES GENERALES
+   ========================================== */
+.main_btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #2e7d32; /* Verde éxito de logística */
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 10px;
+    transition: background-color 0.2s;
+}
+.main_btn:hover {
+    background-color: #1b5e20;
+}
+.btn_calc {
+    background-color: #16a34a;
+    color: white;
+}
+.btn_copy {
+    background-color: #2563eb;
+    color: white;
+    display: none;
+}

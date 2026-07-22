@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Panel de Control - Suzuki Super Carry</title>
+        <link rel="stylesheet" href="global.css">
+        <link rel="stylesheet" href="index.css">
+    </head>
+    <body style="visibility: hidden;" onload="document.body.style.visibility='visible'">
+        <div class="tarjeta_modulo">
+                <!-- BOTÓN DISCRETO DE CONFIGURACIÓN -->
+                <a href="config.html" 
+                   class="btn_config_top" 
+                   title="Configurar Matriz de Costos">
+                    ⚙️
+                </a>
+                <h1>Sistema de Cotización</h1>
+                <p>Control de Operación Logística Independiente</p>
+                <span class="car_badge">Suzuki Carry (Máx. 500 kg)</span>
+            <div class="menu_grid">
+                <!-- BOTÓN MÓDULO 1: CALCULADORA MANUAL -->
+                <a href="manual.html" class="menu_btn">
+                    <div class="icon">✏️</div>
+                    <div class="info">
+                        <span class="title">Cotización Manual</span>
+                        <span class="desc">Digita kilómetros y tiempos conocidos. Ideal para rutas frecuentes.</span>
+                    </div>
+                </a>
+                <!-- BOTÓN MÓDULO 2: CALCULADORA POR COORDENADAS -->
+                <a href="coord.html" class="menu_btn">
+                    <div class="icon">📍</div>
+                    <div class="info">
+                        <span class="title">Cotización por Coordenadas</span>
+                        <span class="desc">Cálculo automático ingresando coordenadas de origen y destino.</span>
+                    </div>
+                </a>
+                <!-- BOTÓN MÓDULO 3: MAPA INTERACTIVO GRÁFICO -->
+                <a href="mapa.html" class="menu_btn">
+                    <div class="icon">🗺️</div>
+                    <div class="info">
+                        <span class="title">Cotización Satelital (Mapa)</span>
+                        <span class="desc">Visualiza la ruta en tiempo real haciendo clics sobre el mapa interactivo.</span>
+                    </div>
+                </a>
+            </div>
+            <div class="footer">
+                Estructura de costos técnicos vinculada a la Matriz de Rodamiento Interna
+            </div>
+        </div>
+    </body>
+</html>

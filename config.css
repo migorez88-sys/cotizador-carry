@@ -1,0 +1,64 @@
+/* ==========================================================================
+   css/config.css - Personalización Exclusiva de la Matriz de Costos Técnicos
+   ========================================================================== */
+/* 2. FILAS DE CAPTURA DE DATOS (Mapeo de tu clase .input_group) */
+.input_group {
+    display: flex;
+    flex-direction: column; /* Apila el texto arriba y el cajón abajo */
+    margin-bottom: 16px;    /* Espacio elegante entre cada parámetro */
+    text-align: left;
+}
+.input_group label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #4a525d;         /* Gris oscuro corporativo */
+    margin-bottom: 6px;
+    letter-spacing: 0.3px;
+}
+/* 3. EMBELLECIMIENTO DE LOS CAJONES NUMÉRICOS (Inputs) */
+.input_group input {
+    padding: 12px 14px;
+    border: 1px solid #ccd1d9; /* Borde gris suave estándar */
+    border-radius: 8px;        /* Esquinas curvas modernas */
+    font-size: 1rem;
+    color: #333333;
+    background-color: #f8f9fa; /* Fondo gris tiza sutil para denotar área de entrada */
+    width: 100%;
+    outline: none;
+    font-weight: 500;          /* Resalta un poco los números digitados */
+    transition: border-color 0.2s, background-color 0.2s, box-shadow 0.2s;
+}
+/* Efecto visual de iluminación cuando el conductor hace clic en el cajón */
+.input_group input:focus {
+    border-color: #0066cc;     /* Azul profesional */
+    background-color: #ffffff; /* El fondo se vuelve blanco puro al escribir */
+    box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15); /* Efecto de brillo exterior */
+}
+/* Estilo para el texto gris de ejemplo (Placeholder) */
+.input_group input::placeholder {
+    color: #aab2bd;
+    font-weight: normal;
+}
+/* 4. BOTÓN PRINCIPAL DE GUARDADO (Mapeo de tu clase .main_btn) */
+.main_btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #2e7d32; /* Verde éxito / Logística segura */
+    color: #ffffff;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-top: 15px;
+    box-shadow: 0 3px 6px rgba(46, 125, 50, 0.2); /* Sombra verde discreta */
+    transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+}
+.main_btn:hover {
+    background-color: #1b5e20; /* Verde más oscuro al pasar el mouse */
+    box-shadow: 0 4px 12px rgba(46, 125, 50, 0.3);
+}
+/* Simulación de botón físico al presionarlo en el celular */
+.main_btn:active {
+    transform: scale(0.98);
+}

@@ -1,0 +1,46 @@
+/* ==========================================================================
+   css/manual.css - Personalización Exclusiva del Cotizador Manual
+   ========================================================================== */
+/*  REJILLA DE TRES COLUMNAS (Para el encabezado y las filas de las fases) */
+.row_header, .grid_3 {
+    display: grid;
+    /* Columna 1: 45% (Texto) | Columna 2: 27.5% (Km) | Columna 3: 27.5% (Min) */
+    grid-template-columns: 1.6fr 1fr 1fr; 
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+/* Encabezado gris de la tabla */
+.row_header {
+    background-color: #f1f3f5;
+    padding: 6px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #656d78;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+}
+.row_header div { text-align: center; }
+.row_header div:first-child { text-align: left; }
+/* Componentes internos de cada fase del viaje */
+.grid_3 label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #333;
+    white-space: nowrap; /* Evita que el texto de la fase se parta en dos renglones */
+}
+.grid_3 input {
+    padding: 8px;
+    border: 1px solid #ccd1d9;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    text-align: center;
+    width: 100%;
+    background-color: #f8f9fa;
+    outline: none;
+}
+.grid_3 input:focus {
+    border-color: #0066cc;
+    background-color: #fff;
+}

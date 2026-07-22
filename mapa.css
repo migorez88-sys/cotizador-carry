@@ -1,0 +1,46 @@
+/* ÚNICOS ESTILOS QUE REALMENTE SIRVEN EN ESTE NUEVO CÓDIGO */
+/* 1. Obliga a la página a ocupar el 100% de la pantalla sin barras de scroll */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+/* CONTENEDOR PRINCIPAL: Modo Computador (Lado a lado en horizontal) */
+.mod_cont_pant_divid {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+}
+/* lado izq mapa */
+#mapa_grafico {
+    flex: 1;
+    height: 100%;
+    background-color: #e5e3df;
+}
+/* lado der formulario */
+#iframe_cont_coord {
+    width: 350px; /* Define aquí el ancho ideal de tu módulo (ej. 350px, 400px o "max-content") */
+    flex-shrink: 0; /* Evita que el mapa lo aplaste o lo haga más pequeño */    
+    height: 100%;
+    border: none;
+    border-left: 2px solid #ccc; /* Línea divisoria gris entre módulos */
+}
+/* RESPONSIVE: Modo Móvil (Pantallas menores a 768px de ancho) */
+@media (max-width: 768px) {
+    .mod_cont_pant_divid {
+        flex-direction: column; /* Apila el mapa ARRIBA y el formulario ABAJO */
+    }
+    #mapa_grafico {
+        flex: 1; /* El mapa se estira para ocupar la mayor parte de la pantalla superior */
+        width: 100%;
+    }
+    #iframe_cont_coord {
+        width: 100%; /* El iframe ocupa todo el ancho del teléfono */
+        height: 250px; /* Altura fija para que tus inputs de coord queden visibles abajo sin estorbar */
+        flex-shrink: 0;
+        border-left: none;
+        border-top: 2px solid #ccc; /* Línea divisoria horizontal en teléfonos */
+    }
+}
