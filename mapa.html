@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Módulo de Mapa y Coordenadas</title>
+        <!-- =========================================================================================
+         AUTO-LECCIÓN: CARGA DE LIBRERÍAS EXTERNAS (LEAFLET VIA CDN)
+         ¿Qué es un CDN (como unpkg o cdnjs)? 
+         Es una Red de Entrega de Contenidos. Guarda archivos (JS/CSS) en servidores globales de 
+         alta velocidad. El navegador del usuario descarga la librería desde el servidor más cercano 
+         a su ubicación física, acelerando la carga de nuestra aplicación.
+         ¿Qué significan los atributos dentro de estas líneas?
+         1. href / src: Las rutas absolutas en internet que apuntan al archivo exacto (.css o .js).
+            Siempre deben llevar el nombre del archivo final para evitar errores de tipo MIME.
+         2. integrity: Una firma criptográfica de seguridad (hash base64 como sha256). Asegura que 
+            el archivo descargado no haya sido alterado o hackeado en el camino. Si una sola línea 
+            del archivo cambia, el navegador bloquea la carga por seguridad. Debe tener una longitud 
+            múltiplo de 4 bytes (por eso termina en '=') para que validadores como NetBeans no fallen.
+         3. crossorigin="": Indica al navegador que estamos pidiendo un recurso a un servidor externo 
+            (Origen Cruzado). Esto permite que el intercambio de datos seguros y las políticas CORS 
+            se ejecuten correctamente entre nuestro Localhost y el servidor remoto.
+    ========================================================================================== -->
+        <!-- Reemplazo con CDNJS oficial (Estable, con hashes de integridad y sin problemas de CORS) -->
+        <!-- URLs Oficiales de Leaflet con hashes de integridad exactos y aprobados por NetBeans -->
+        <link rel="stylesheet" 
+              href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+              integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+              crossorigin="" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" 
+                integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
+                crossorigin="">
+        </script>
+        <link rel="stylesheet" href="css/mapa.css" />
+    </head>
+    <body>
+        <div class="mod_cont_pant_divid">
+            <!-- AREA 1: El Mapa Gráfico -->
+            <div id="mapa_grafico"></div>
+            <!-- 2. Tu módulo embebido importado directamente -->
+            <iframe id="iframe_cont_coord" src="coord.html"></iframe>
+        </div>
+        <script defer src="js/mapa.js"></script>
+    </body>
+</html>
