@@ -22,24 +22,28 @@
                 <option title="tráfico pesado" value="pico">🚗</option>
             </select>
             <h2>Cotizador Carry</h2>
+            <datalist id="sedes_predeterminadas"></datalist>
             <div class="input_group">
                 <label>🏠 Punto Base / Origen (Coordenadas Lat, Lng):</label>
                     <input type="text" 
                            id="puntoBase" 
+                           list="sedes_predeterminadas"
                            value=""
                            placeholder="3.437351, -76.506770">
-            </div>
+                </div>
             <div class="input_group">
                 <label>📍 Punto A (Recogida de Carga - Lat, Lng):</label>
                 <input type="text" 
-                       id="puntoA" 
+                       id="puntoA"
+                       list="sedes_predeterminadas"
                        value=""
                        placeholder="3.405144, -76.569511">
             </div>
             <div class="input_group">
                 <label>🏁 Punto B (Destino de Entrega - Lat, Lng):</label>
                 <input type="text" 
-                       id="puntoB" 
+                       id="puntoB"                           
+                       list="sedes_predeterminadas"
                        value=""
                        placeholder="3.477987, -76.481571">
             </div>
@@ -85,9 +89,9 @@
                 <button class="main_btn btn_copy" id="btnCopy" onclick="copiarWhatsApp()">📋 Copiar para WhatsApp</button>
             </div>
         </div>
-        <script defer src="localforage.min.js"></script>
-        <script defer src="init_globals.js"></script>
-        <script defer src="init_modules.js"></script>
-        <script defer src="coord.js"></script>
+<!--        <script defer src="./localforage.min.js"></script>-->
+        <script defer src="./init_globals.js"></script>
+        <script defer src="./init_modules.js"></script>
+        <script defer src="./coord.js"></script>
     </body>
 </html>

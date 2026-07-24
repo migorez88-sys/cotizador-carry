@@ -21,6 +21,11 @@
             (Origen Cruzado). Esto permite que el intercambio de datos seguros y las políticas CORS 
             se ejecuten correctamente entre nuestro Localhost y el servidor remoto.
     ========================================================================================== -->
+        <!-- 1. Estilos del Mapa (Tu archivo local limpio) -->
+        <link rel="stylesheet" href="./leaflet.css" />
+        <link rel="stylesheet" href="mapa.css" />
+        <!-- 2. Motor Gráfico del Mapa (CDN Oficial Estable) -->
+        <script src="https://unpkg.com" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
         <!-- Reemplazo con CDNJS oficial (Estable, con hashes de integridad y sin problemas de CORS) -->
         <!-- URLs Oficiales de Leaflet con hashes de integridad exactos y aprobados por NetBeans -->
         <link rel="stylesheet" 
@@ -31,7 +36,7 @@
                 integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" 
                 crossorigin="">
         </script>
-        <link rel="stylesheet" href="mapa.css" />
+        <script defer src="./mapa.js"></script>
     </head>
     <body>
         <div class="mod_cont_pant_divid">
@@ -40,6 +45,5 @@
             <!-- 2. Tu módulo embebido importado directamente -->
             <iframe id="iframe_cont_coord" src="coord.html"></iframe>
         </div>
-        <script defer src="mapa.js"></script>
     </body>
 </html>

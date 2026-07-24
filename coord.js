@@ -20,6 +20,21 @@ document.getElementById('puntoA').addEventListener('focus', function() {
 document.getElementById('puntoB').addEventListener('focus', function() {
     window.ultimoInputConFoco = this;
 });
+/* Función enlistarPuntosFijos. Despliega en los cajones de búsqueda de coodenadas (y direcciones próximamente)
+ * un listado de puntos conocidos o frecuentes, para hacer más fácil su accesibilidad al talvez cambiar 
+ * tarifas y recalcular la cotización. */
+function enlistarPuntosGuardados() {
+    const inputListSedesPredet = document.getElementById('sedes_predeterminadas');
+    inputListSedesPredet.innerHTML = '';
+    MIS_SEDES.forEach(sede => {
+        const option = document.createElement('option');
+        option.value = sede.coodenadas;
+        option.textContent = sede.nombre;
+        inputListSedesPredet.appendChild(option);
+    });
+    console.log("Desplegable único compartido y listo.");
+}
+
 // Escuchador que recibe las coordenadas desde el mapa gráfico
 window.addEventListener('message', function(evento) {
     const coodenadas = evento.data;

@@ -68,8 +68,20 @@
                 en paralelo pero los ejecute estrictamente en el orden en que los escribiste.
                 2. Evita que el código se ejecute antes de que existan los cajones de texto.
                 Llamados 100% locales: Funcionan sin internet -->
-        <script defer src="localforage.min.js"></script>
-        <script defer src="init_globals.js"></script>
-        <!-- <script defer src="js/config.js"></script> -->
+        <script>
+           function autoLlenarCamposConfig() {
+               if (document.getElementById('form_tarifas')) {
+                   // Inyectamos cada valor en su caja de texto correspondiente usando tus IDs
+                   document.getElementById('tarifa_base').value = TARIFAS_CARRY.tar_min;
+                   document.getElementById('costo_comb').value = TARIFAS_CARRY.gaso;
+                   document.getElementById('hora_lab').value = TARIFAS_CARRY.hora;
+                   document.getElementById('precio_km').value = TARIFAS_CARRY.km_base;
+                   document.getElementById('consumo_actual').value = TARIFAS_CARRY.cons;
+                   console.log("✅ Fase autollenado de campos de configuración almacenados");
+               }
+           }
+        </script>
+<!--        <script defer src="./localforage.min.js"></script>-->
+        <script defer src="./init_globals.js"></script>
     </body>
 </html>
