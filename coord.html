@@ -9,8 +9,13 @@
     </head>
     <body>
         <div class="tarjeta_modulo">
+       <!-- target="_self": Es el comportamiento por defecto. Si haces clic, el inicio (index.html) se abriría adentro
+            del cuadrito chiquito del iframe, lo cual desarmaría visualmente tu layout.
+            target="_blank": Abre explícitamente una pestaña nueva.
+            target="_top": Le ordena al navegador: "Sal de cualquier iframe en el que estés atrapado y carga este nuevo
+            enlace ocupando la ventana principal completa (la copa del árbol)", todo dentro de la misma pestaña actual.-->
             <a href="index.html"
-               target="top"
+               target="_top"
                class="btn_home_tarjeta" 
                title="Volver al Inicio">🏠
             </a>
@@ -22,24 +27,29 @@
                 <option title="tráfico pesado" value="pico">🚗</option>
             </select>
             <h2>Cotizador Carry</h2>
+<!--        Control de enlistamiento de puntos predederminado o guardados   -->
+            <datalist id="puntos_guardados"></datalist>
             <div class="input_group">
                 <label>🏠 Punto Base / Origen (Coordenadas Lat, Lng):</label>
                     <input type="text" 
                            id="puntoBase" 
+                           list="puntos_guardados"
                            value=""
                            placeholder="3.437351, -76.506770">
-            </div>
+                </div>
             <div class="input_group">
                 <label>📍 Punto A (Recogida de Carga - Lat, Lng):</label>
                 <input type="text" 
-                       id="puntoA" 
+                       id="puntoA"
+                       list="puntos_guardados"
                        value=""
                        placeholder="3.405144, -76.569511">
             </div>
             <div class="input_group">
                 <label>🏁 Punto B (Destino de Entrega - Lat, Lng):</label>
                 <input type="text" 
-                       id="puntoB" 
+                       id="puntoB"                           
+                       list="puntos_guardados"
                        value=""
                        placeholder="3.477987, -76.481571">
             </div>
@@ -85,9 +95,9 @@
                 <button class="main_btn btn_copy" id="btnCopy" onclick="copiarWhatsApp()">📋 Copiar para WhatsApp</button>
             </div>
         </div>
-        <script defer src="localforage.min.js"></script>
-        <script defer src="init_globals.js"></script>
-        <script defer src="init_modules.js"></script>
-        <script defer src="coord.js"></script>
+<!--        <script defer src="./localforage.min.js"></script>-->
+        <script defer src="./init_globals.js"></script>
+        <script defer src="./init_modules.js"></script>
+        <script defer src="./coord.js"></script>
     </body>
 </html>

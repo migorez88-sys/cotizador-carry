@@ -2,95 +2,6 @@
     Created on : 17/07/2026, 4:18:14 p. m.
     Author     : migor
 */
-
-/* 1. OBLIGATORIO: Asegura que la tarjeta controle los elementos absolutos dentro de ella */
-/*.tarjeta-config {
-    position: relative;  Esta línea es mágica: fija el borde para el botón 
-    background: #ffffff;
-    padding: 30px;
-    border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 450px;
-}
-
- 2. El botón ahora se ubicará respecto a la tarjeta blanca, no a la pantalla 
-.btn-home-tarjeta {
-    position: absolute;
-    top: 15px;
-    left: 15px;           Se pega a la esquina superior izquierda interna de la tarjeta 
-    font-size: 1.3rem;
-    text-decoration: none;
-    color: #333;
-    opacity: 0.6;
-    transition: opacity 0.2s, transform 0.2s;
-}
-
-.btn-home-tarjeta:hover {
-    opacity: 1;
-    transform: scale(1.1);
-}*/
-
-/*<!-- ESTILOS INTERNOS DE LEAFLET INTEGRADOS -->
- Estilos base del mapa Leaflet integrados directamente para evitar descargas externas 
-.leaflet-pane,.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile-container,.leaflet-pane>svg,.leaflet-pane>canvas,.leaflet-zoom-box,.leaflet-image-layer,.leaflet-layer{
-    position:absolute;
-    left:0;
-    top:0
-}
-.leaflet-container{
-    overflow:hidden;
-    -ms-touch-action:none;
-    touch-action:none;
-    background:#ddd;
-    font:12px/1.5 "Helvetica Neue",Arial,Helvetica,sans-serif
-}
-.leaflet-tile,.leaflet-marker-icon,.leaflet-marker-shadow{
-    -webkit-user-select:none;
-    -moz-user-select:none;
-    -user-select:none;
-    -webkit-user-drag:none
-}
-.leaflet-tile{
-    filter:inherit;
-    visibility:hidden
-}
-.leaflet-tile-loaded{
-    visibility:inherit
-}
-.leaflet-zoom-box{
-    width:0;
-    height:0;
-    -moz-box-sizing:border-box;
-    box-sizing:border-box;
-    z-index:800
-}
-.leaflet-pane{
-    z-index:400
-}
-.leaflet-tile-pane{
-    z-index:200
-}
-.leaflet-overlay-pane{
-    z-index:400
-}
-.leaflet-shadow-pane{
-    z-index:500
-}
-.leaflet-marker-pane{
-    z-index:600
-}
-.leaflet-tooltip-pane{
-    z-index:650
-}
-.leaflet-popup-pane{
-    z-index:700
-}
-.leaflet-map-pane svg{
-    width:auto;
-    height:auto
-}*/
-
 :root {
     --primary: #1e3a8a;
     --accent: #2563eb;
@@ -111,25 +22,6 @@ body {
     display: flex;
     justify-content: center;
 }
-
-/*.container {
-    width: 100%;
-    max-width: 600px;
-    background: var(--card);
-    padding: 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-h2 {
-    text-align: center;
-    color: var(--primary);
-    margin-bottom: 15px;
-    font-size: 1.3rem;
-    border-bottom: 2px solid #e2e8f0;
-    padding-bottom: 10px;
-}*/
-
 label {
     display: block;
     font-size: 0.85rem;
@@ -137,7 +29,6 @@ label {
     color: #475569;
     margin-bottom: 4px;
 }
-
 input, select {
     width: 100%;
     padding: 10px;
@@ -146,73 +37,6 @@ input, select {
     font-size: 0.95rem;
     outline: none;
 }
-
 input:focus, select:focus {
     border-color: var(--accent);
 }
-
-.base-editable {
-    display: flex;
-    gap: 8px;
-}
-.base-editable input {
-    flex: 1;
-}
-
-/*#map {
-    width: 100%;
-    height: 220px;
-    border-radius: 8px;
-    margin: 15px 0;
-    background: #e2e8f0;
-    position: relative;
-    z-index: 1;
-}*/
-
-/*button.main_btn {
-    width: 100%;
-    padding: 12px;
-    border: none;
-    border-radius: 6px;
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    margin-top: 10px;
-}*/
-
-/*.btn_copy {
-    background-color: #2563eb;
-    color: white;
-    display: none;
-}*/
-/*
-.result-box {
-    margin-top: 15px;
-    padding: 15px;
-    background-color: #f1f5f9;
-    border-radius: 8px;
-    border: 1px dashed #cbd5e1;
-    display: none;
-}
-
-.total-highlight {
-    font-size: 1.6rem;
-    font-weight: bold;
-    color: #16a34a;
-    text-align: center;
-    margin-bottom: 10px;
-}
-
-.summary-text {
-    font-size: 0.88rem;
-    white-space: pre-line;
-    line-height: 1.5;
-}
-
-.loading {
-    text-align: center;
-    color: var(--accent);
-    font-weight: bold;
-    display: none;
-    margin: 10px 0;
-}*/

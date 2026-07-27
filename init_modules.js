@@ -5,29 +5,6 @@ let lastStateTipos = {
     lastTipoOperacion: "",
     lastTipoTrafico: ""
 };
-// FUNCIÓN FILTRO: Bloquea físicamente cualquier tecla que no sea un número o un punto decimal - AI
-function filtrarSoloNumeros(event) {
-    const tecla = event.key;
-    // Permitir teclas de control del teclado (Borrar, flechas, Suprimir, Tabulador, Enter)
-    if (['Backspace', 'ArrowLeft', 'ArrowRight', 'Delete', 'Tab', 'Enter'].includes(tecla)) {
-        return true;
-    }
-    // Permitir números del 0 al 9 y un único punto decimal
-    // El 'event.target.value' es el texto actual que ya está escrito en la caja
-    if (tecla === ',') {
-        // Si ya hay un punto decimal en la caja, bloqueamos el segundo punto
-        if (event.target.value.includes(',')) {
-            event.preventDefault();
-            return false;
-        }
-        return true;
-    }
-    // Expresión regular: Si la tecla NO es un número entre 0 y 9, cancelamos la pulsación
-    if (!/^[0-9]$/.test(tecla)) {
-        event.preventDefault(); // Esta orden mágica evita que la letra aparezca en pantalla
-        return false;
-    }
-}
 // FUNCIÓN DE COMPROBACIÓN RÁPIDA DE CAMBIO DE PARÁMETROS DE COTIZACIÓN (Filtro Inteligente) - IA
 function verificarCambiosTipoViaje() {
     // Capturamos los elementos del HTML actual de forma segura usando el operador '?'

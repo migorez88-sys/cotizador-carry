@@ -20,6 +20,25 @@ document.getElementById('puntoA').addEventListener('focus', function() {
 document.getElementById('puntoB').addEventListener('focus', function() {
     window.ultimoInputConFoco = this;
 });
+/* Función enlistarPuntosFijos. Despliega en los cajones de búsqueda de coodenadas (y direcciones próximamente)
+ * un listado de puntos conocidos o frecuentes, para hacer más fácil su accesibilidad al talvez cambiar 
+ * tarifas y recalcular la cotización. */
+function enlistarPuntosGuardados() {
+    const inputListPuntosGuardados = document.getElementById('puntos_guardados');
+    if (!inputListPuntosGuardados) return;
+    inputListPuntosGuardados.innerHTML = '';
+    const puntos = MIS_PUNTOS;
+    puntos.forEach(punto => {
+        const option = document.createElement('option');
+        // CORRECCIÓN CLAVE: El nombre va en el value para que el navegador lo muestre y filtre
+        option.value = punto.nombre; 
+        // GUARDADO INVISIBLE: Las coordenadas se ocultan en un atributo personalizado 'data-*'
+        option.setAttribute('data-coordenadas', punto.coordenadas);
+        inputListPuntosGuardados.appendChild(option);
+    });
+    console.log("✅ Desplegable único compartido y listo para filtrar por nombre.");
+}
+
 // Escuchador que recibe las coordenadas desde el mapa gráfico
 window.addEventListener('message', function(evento) {
     const coodenadas = evento.data;
@@ -142,3 +161,7 @@ async function procesarRutasYCalcular() {
         alert(error.message);
     }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    enlistarPuntosGuardados();
+});
