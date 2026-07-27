@@ -8,57 +8,84 @@
         <link rel="stylesheet" href="config.css">
     </head>
     <body>
-        <form id="form_tarifas" class="tarjeta_modulo">
-            <a href="index.html" class="btn_home_tarjeta" title="Volver al Inicio">🏠</a>
-            <h2>Matriz de Costos Técnicos ⚙️</h2>
-            <p>Ajusta los valores de operación de la Suzuki Carry</p>
-            <div class="input_group">
-                <label for="tarifa_base">Tarifa Mínima ($): </label>
-                <input type="number" 
-                       id="tarifa_base"
-                       onkeypress="filtrarSoloNumeros(event)"
-                       placeholder="Ej: 15000" 
-                       step="1000" 
-                       min="0">
+        <!-- Contenedor principal para organizar el formulario y la lista en paralelo -->
+        <div class="contenedor_config_layout">
+            <form id="form_tarifas" class="tarjeta_modulo">
+                <a href="index.html" class="btn_home_tarjeta" title="Volver al Inicio">🏠</a>
+                <h2>Matriz de Costos Técnicos ⚙️</h2>
+                <p>Ajusta los valores de operación de la Suzuki Carry</p>
+                <div class="input_group">
+                    <label for="tarifa_base">Tarifa Mínima ($): </label>
+                    <input type="number" 
+                           id="tarifa_base"
+                           onkeypress="filtrarSoloNumeros(event)"
+                           placeholder="Ej: 15000" 
+                           step="1000" 
+                           min="0">
+                </div>
+                <div class="input_group">
+                    <label for="costo_comb">Costo Galón de Gasolina Actual ($):</label>
+                    <input type="number" 
+                           id="costo_comb"
+                           onkeypress="filtrarSoloNumeros(event)"
+                           placeholder="16300" 
+                           step="100" 
+                           min="0">
+                </div>
+                <div class="input_group">
+                    <label for="hora_lab">Valor Hora Laboral Actual ($):</label>
+                    <input type="number" 
+                           id="hora_lab"
+                           onkeypress="filtrarSoloNumeros(event)"
+                           placeholder="18000" 
+                           step="100" 
+                           min="0">
+                </div>
+                <div class="input_group">
+                    <label for="precio_km">Precio Base por Kilómetro ($):</label>
+                    <input type="number" 
+                           id="precio_km"
+                           onkeypress="filtrarSoloNumeros(event)"
+                           placeholder="570" 
+                           step="10" 
+                           min="0">
+                </div>
+                <div class="input_group">
+                    <label for="consumo_actual">Consumo Actual (kms/galón):</label>
+                    <input type="number" 
+                           id="consumo_actual"
+                           onkeypress="filtrarSoloNumeros(event)"
+                           placeholder="33" 
+                           step="1" 
+                           min="0">
+                </div>
+                <button type="submit" class="main_btn">💾 Guardar Confiiguración</button>
+            </form>
+            
+            <!-- NUEVO MÓDULO: Puntos y Posiciones Guardadas -->
+            <div id="modulo_puntos" class="tarjeta_modulo">
+                <h2>Puntos Frecuentes 📍</h2>
+                <p>Gestiona tus zonas de carga y destinos habituales</p>
+                <!-- Input rápido para agregar un nuevo punto -->
+                <div class="input_agregar_punto">
+                    <input type="text" id="nombre_nuevo_punto" placeholder="Nombre (Ej: Bodega Central o Cali Norte)">
+                    <input type="text" id="coord_nuevo_punto" placeholder="Coordenadas (Ej: 3.4651, -76.5210)">
+                    <button type="button" id="btn_agregar_punto" title="Agregar Punto">➕</button>
+                </div>
+                <!-- Lista Deslizable e Interactiva -->
+                <div class="wrapper_lista_deslizable">
+                    <ul id="lista_puntos" class="lista_interactiva">
+                        <!-- Ejemplo de ítem (Se generarán dinámicamente con JS) -->
+                        <li class="item_punto" draggable="false">
+                            <div class="contenido_item" contenteditable="false">
+                                No tienes puntos guardados actualmente
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+                <small class="instruccion_uso">💡 Tip: Arrastra para ordenar | Desliza a la izquierda para borrar | Toca el texto para editar.</small>
             </div>
-            <div class="input_group">
-                <label for="costo_comb">Costo Galón de Gasolina Actual ($):</label>
-                <input type="number" 
-                       id="costo_comb"
-                       onkeypress="filtrarSoloNumeros(event)"
-                       placeholder="16300" 
-                       step="100" 
-                       min="0">
-            </div>
-            <div class="input_group">
-                <label for="hora_lab">Valor Hora Laboral Actual ($):</label>
-                <input type="number" 
-                       id="hora_lab"
-                       onkeypress="filtrarSoloNumeros(event)"
-                       placeholder="18000" 
-                       step="100" 
-                       min="0">
-            </div>
-            <div class="input_group">
-                <label for="precio_km">Precio Base por Kilómetro ($):</label>
-                <input type="number" 
-                       id="precio_km"
-                       onkeypress="filtrarSoloNumeros(event)"
-                       placeholder="570" 
-                       step="10" 
-                       min="0">
-            </div>
-            <div class="input_group">
-                <label for="consumo_actual">Consumo Actual (kms/galón):</label>
-                <input type="number" 
-                       id="consumo_actual"
-                       onkeypress="filtrarSoloNumeros(event)"
-                       placeholder="33" 
-                       step="1" 
-                       min="0">
-            </div>
-            <button type="submit" class="main_btn">💾 Guardar Confiiguración</button>
-        </form>
+        </div>
         <!--    Base de datos con filtro de carga obligatoria y ordenada (defer)
                 El atributo defer cumple dos funciones críticas en html/javascript
                 que la asincronía de la base de datos no puede resolver por sí sola:
@@ -69,19 +96,44 @@
                 2. Evita que el código se ejecute antes de que existan los cajones de texto.
                 Llamados 100% locales: Funcionan sin internet -->
         <script>
-           function autoLlenarCamposConfig() {
-               if (document.getElementById('form_tarifas')) {
-                   // Inyectamos cada valor en su caja de texto correspondiente usando tus IDs
-                   document.getElementById('tarifa_base').value = TARIFAS_CARRY.tar_min;
-                   document.getElementById('costo_comb').value = TARIFAS_CARRY.gaso;
-                   document.getElementById('hora_lab').value = TARIFAS_CARRY.hora;
-                   document.getElementById('precio_km').value = TARIFAS_CARRY.km_base;
-                   document.getElementById('consumo_actual').value = TARIFAS_CARRY.cons;
-                   console.log("✅ Fase autollenado de campos de configuración almacenados");
-               }
-           }
+            function autoLlenarCamposConfig() {
+                // Inyectamos cada valor en su caja de texto correspondiente usando tus IDs
+                document.getElementById('tarifa_base').value = TARIFAS_CARRY.tar_min;
+                document.getElementById('costo_comb').value = TARIFAS_CARRY.gaso;
+                document.getElementById('hora_lab').value = TARIFAS_CARRY.hora;
+                document.getElementById('precio_km').value = TARIFAS_CARRY.km_base;
+                document.getElementById('consumo_actual').value = TARIFAS_CARRY.cons;
+                console.log("✅ Fase autollenado de campos de configuración almacenados");
+            }
+            // envío del formulario para guardar la configuración
+            document.getElementById('form_tarifas').addEventListener('submit', function (event) {
+                // Evita que la página se recargue automáticamente al presionar guardar
+                event.preventDefault();
+                // 2. Guardar valores
+                // Usamos parseFloat para asegurarnos de que el navegador lea números y no texto
+                TARIFAS_CARRY = {
+                    tar_min: parseFloat(document.getElementById('tarifa_base').value),
+                    gaso: parseFloat(document.getElementById('costo_comb').value),
+                    hora: parseFloat(document.getElementById('hora_lab').value),
+                    km_base: parseFloat(document.getElementById('precio_km').value),
+                    cons: parseFloat(document.getElementById('consumo_actual').value)
+                };
+                dbTarifas.setItem(KEY_TARIFAS_GUARDADAS, TARIFAS_CARRY).then(function () {
+                    alert("¡Parámetros guardados en el correctamente! 🚚");
+                    // Redireccionar de vuelta al menú principal automáticamente
+                    window.location.href = "index.html";
+                }).catch(function (err) {
+                    console.error("Error al escribir en IndexedDB:", err);
+                });
+                //guardarPuntosEnServidor();
+                guardarPuntosEnServidor().catch(err => {
+                    console.error("⚠️ Error atrapado inline:", err);
+                    return; 
+                });
+            });
         </script>
-<!--        <script defer src="./localforage.min.js"></script>-->
+        <!--        <script defer src="./localforage.min.js"></script>-->
         <script defer src="./init_globals.js"></script>
+        <script defer src="./mdl_pnts_config.js"></script>
     </body>
 </html>

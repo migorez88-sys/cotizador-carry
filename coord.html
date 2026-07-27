@@ -9,8 +9,13 @@
     </head>
     <body>
         <div class="tarjeta_modulo">
+       <!-- target="_self": Es el comportamiento por defecto. Si haces clic, el inicio (index.html) se abriría adentro
+            del cuadrito chiquito del iframe, lo cual desarmaría visualmente tu layout.
+            target="_blank": Abre explícitamente una pestaña nueva.
+            target="_top": Le ordena al navegador: "Sal de cualquier iframe en el que estés atrapado y carga este nuevo
+            enlace ocupando la ventana principal completa (la copa del árbol)", todo dentro de la misma pestaña actual.-->
             <a href="index.html"
-               target="top"
+               target="_top"
                class="btn_home_tarjeta" 
                title="Volver al Inicio">🏠
             </a>
@@ -22,12 +27,13 @@
                 <option title="tráfico pesado" value="pico">🚗</option>
             </select>
             <h2>Cotizador Carry</h2>
-            <datalist id="sedes_predeterminadas"></datalist>
+<!--        Control de enlistamiento de puntos predederminado o guardados   -->
+            <datalist id="puntos_guardados"></datalist>
             <div class="input_group">
                 <label>🏠 Punto Base / Origen (Coordenadas Lat, Lng):</label>
                     <input type="text" 
                            id="puntoBase" 
-                           list="sedes_predeterminadas"
+                           list="puntos_guardados"
                            value=""
                            placeholder="3.437351, -76.506770">
                 </div>
@@ -35,7 +41,7 @@
                 <label>📍 Punto A (Recogida de Carga - Lat, Lng):</label>
                 <input type="text" 
                        id="puntoA"
-                       list="sedes_predeterminadas"
+                       list="puntos_guardados"
                        value=""
                        placeholder="3.405144, -76.569511">
             </div>
@@ -43,7 +49,7 @@
                 <label>🏁 Punto B (Destino de Entrega - Lat, Lng):</label>
                 <input type="text" 
                        id="puntoB"                           
-                       list="sedes_predeterminadas"
+                       list="puntos_guardados"
                        value=""
                        placeholder="3.477987, -76.481571">
             </div>

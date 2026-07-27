@@ -24,15 +24,19 @@ document.getElementById('puntoB').addEventListener('focus', function() {
  * un listado de puntos conocidos o frecuentes, para hacer más fácil su accesibilidad al talvez cambiar 
  * tarifas y recalcular la cotización. */
 function enlistarPuntosGuardados() {
-    const inputListSedesPredet = document.getElementById('sedes_predeterminadas');
-    inputListSedesPredet.innerHTML = '';
-    MIS_SEDES.forEach(sede => {
+    const inputListPuntosGuardados = document.getElementById('puntos_guardados');
+    if (!inputListPuntosGuardados) return;
+    inputListPuntosGuardados.innerHTML = '';
+    const puntos = MIS_PUNTOS;
+    puntos.forEach(punto => {
         const option = document.createElement('option');
-        option.value = sede.coodenadas;
-        option.textContent = sede.nombre;
-        inputListSedesPredet.appendChild(option);
+        // CORRECCIÓN CLAVE: El nombre va en el value para que el navegador lo muestre y filtre
+        option.value = punto.nombre; 
+        // GUARDADO INVISIBLE: Las coordenadas se ocultan en un atributo personalizado 'data-*'
+        option.setAttribute('data-coordenadas', punto.coordenadas);
+        inputListPuntosGuardados.appendChild(option);
     });
-    console.log("Desplegable único compartido y listo.");
+    console.log("✅ Desplegable único compartido y listo para filtrar por nombre.");
 }
 
 // Escuchador que recibe las coordenadas desde el mapa gráfico
@@ -157,3 +161,7 @@ async function procesarRutasYCalcular() {
         alert(error.message);
     }
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+    enlistarPuntosGuardados();
+});

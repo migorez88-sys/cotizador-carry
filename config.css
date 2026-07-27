@@ -62,3 +62,173 @@
 .main_btn:active {
     transform: scale(0.98);
 }
+/* Disposición en paralelo */
+.contenedor_config_layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 0 15px;
+}
+
+/* Forzar que compartan espacio si la pantalla es amplia */
+.contenedor_config_layout .tarjeta_modulo {
+    flex: 1;
+    min-width: 320px;
+    max-width: 550px;
+}
+
+/* Área de agregar punto rápido */
+.input_agregar_punto {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.input_agregar_punto input {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+.input_agregar_punto button {
+    background: #28a745;
+    border: none;
+    border-radius: 6px;
+    padding: 0 15px;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+
+/* Lista Deslizable Estilo App Móvil */
+.wrapper_lista_deslizable {
+    max-height: 350px;
+    overflow-y: auto;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: #fafafa;
+}
+.lista_interactiva {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* El truco del ítem: Posicionamiento relativo para ocultar el botón borrar abajo */
+.item_punto {
+    position: relative;
+    background: #dc3545; /* Fondo rojo de eliminación */
+    overflow: hidden;
+    border-bottom: 1px solid #eee;
+    cursor: grab;
+    user-select: none;
+}
+.item_punto:active {
+    cursor: grabbing;
+}
+
+/* Texto de fondo que aparece al deslizar */
+.accion_eliminar_fondo {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    pointer-events: none;
+}
+
+/* Cuerpo visible del ítem que se mueve con el dedo/mouse */
+.contenido_item {
+    position: relative;
+    background: white;
+    padding: 14px 15px;
+    z-index: 2;
+    transition: transform 0.2s ease-out;
+    outline: none;
+}
+
+/* Al editar el texto directamente */
+.contenido_item[contenteditable="true"]:focus {
+    background: #eef7ff;
+    box-shadow: inset 0 0 4px rgba(0,123,255,0.3);
+}
+
+/* Efecto visual cuando se está arrastrando para cambiar orden */
+.item_punto.dragging {
+    opacity: 0.5;
+    background: #e0e0e0;
+}
+
+.instruccion_uso {
+    display: block;
+    margin-top: 10px;
+    color: #666;
+    text-align: center;
+}
+
+/* Contenedor del nombre (Letra más grande y negrita) */
+.punto_nombre {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #333;
+    outline: none;
+    margin-bottom: 4px;
+}
+
+/* Contenedor de coordenadas (Más pequeño y gris) */
+.punto_coordenadas {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.coordenadas_texto {
+    display: inline-block;
+    min-width: 150px;
+    outline: none;
+    border-bottom: 1px dashed #ccc; /* Guía visual de que es editable */
+}
+
+/* Indicador cuando el campo está vacío */
+[contenteditable="true"]:empty:before {
+    content: attr(data-placeholder);
+    color: #aaa;
+    font-style: italic;
+}
+.input_agregar_punto {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    flex-wrap: wrap; /* Por si la pantalla es muy angosta en un celular */
+}
+.input_agregar_punto #nombre_nuevo_punto {
+    flex: 2; /* Le da más espacio al campo del nombre */
+    min-width: 150px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+.input_agregar_punto #coord_nuevo_punto {
+    flex: 1.5; /* Espacio intermedio para las coordenadas lat,lng */
+    min-width: 130px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+.input_agregar_punto button {
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0 15px;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+/* Si el ítem no tiene coordenadas válidas, se pone rojo de advertencia */
+.item_punto.item_invalido .contenido_item {
+    background: #fff0f0;
+    border-left: 5px solid #dc3545;
+}

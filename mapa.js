@@ -1,4 +1,4 @@
-/* global L */ // línea para ignorar advertencias de variables globales no cargadas como no definidas
+/* global L */ 
 // MÓDULO DEL MAPA GRÁFICO (Lógica de Dibujo e Interacción)
 const ModuloMapa = {
     instanciaMapa: null,
@@ -12,6 +12,11 @@ const ModuloMapa = {
                 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                 {attribution: '&copy; OpenStreetMap'}
         ).addTo(this.instanciaMapa);
+        // 🛠️ PARCHE CRÍTICO: Fuerza a Leaflet a recalcular y "pintar" los mosaicos en pantalla
+        setTimeout(() => {
+            this.instanciaMapa.invalidateSize();
+            console.log("🔄 Motor gráfico recalibrado y forzado a dibujarse.");
+        }, 200);
         // CAPTURA EL CLICK SOBRE MAPA GRÁFICO
         this.instanciaMapa.on('click', (evento) => {
             const {lat, lng} = evento.latlng;
