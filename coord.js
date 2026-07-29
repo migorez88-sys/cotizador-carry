@@ -7,9 +7,11 @@ let
         cacheRecog,
         cacheCarga,
         cacheRetor = null;
+
 // Variable global en el módulo de coordenadas para recordar el cajón seleccionado
 // Declaramos la variable en la ventana global del iframe
 window.ultimoInputConFoco = null;
+
 // Cuando el usuario haga clic o entre a un input, guardamos la referencia de ese cajón
 document.getElementById('puntoBase').addEventListener('focus', function() {
     window.ultimoInputConFoco = this;
@@ -20,6 +22,59 @@ document.getElementById('puntoA').addEventListener('focus', function() {
 document.getElementById('puntoB').addEventListener('focus', function() {
     window.ultimoInputConFoco = this;
 });
+
+function extraerCoordenadas(texto) {
+    const regex = /([-+]?\d+\.\d+)\s*,\s*([-+]?\d+\.\d+)/;
+    const match = texto.match(regex);
+    if (match) {
+        return {
+            lat: parseFloat(match[1]), // Corregido: Grupo 1 capturado
+            lng: parseFloat(match[2])  // Corregido: Grupo 2 capturado
+        };
+    }
+    return null;
+}
+
+async function obtenerDatosRutaOSM(origenStr, destinoStr) {
+    const cordOrigen = extraerCoordenadas(origenStr);
+    const cordDestino = extraerCoordenadas(destinoStr);
+    if (!cordOrigen || !cordDestino) {
+        throw new Error("Por favor, ingresa las coordenadas en formato válido: Lat, Lng (Ej: 3.437333, -76.506762)");
+    }
+    // Proveedor Principal OSRM
+    const urlOSRM = `https://router.project-osrm.org/route/v1/driving/${cordOrigen.lng},${cordOrigen.lat};${cordDestino.lng},${cordDestino.lat}?overview=full&geometries=geojson`;
+    // Proveedor Secundario de Respaldo Abierto
+    const urlORS = `https://openrouteservice.org/${cordOrigen.lng},${cordOrigen.lat}&end=${cordDestino.lng},${cordDestino.lat}`;
+    const factorCorrecKmReal = 1.159;
+    const factorCorrecTiemReal = 1.42;
+    try {
+        const response = await fetch(urlOSRM);
+        if (!response.ok)
+            throw new Error("Intentando Plan de Respaldo...");
+        const data = await response.json();
+        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0)
+            throw new Error("Ruta no comercial.");
+        return {
+            distancia: (data.routes[0].distance / 1000) * factorCorrecKmReal,
+            tiempo: (data.routes[0].duration / 60) * factorCorrecTiemReal,
+            geometry: data.routes[0].geometry
+        };
+    } catch (err) {
+        console.warn("Fallo OSRM, usando respaldo:", err.message);
+        const responseORS = await fetch(urlORS);
+        if (!responseORS.ok)
+            throw new Error("Servidores saturados. Revisa tu conexión.");
+        const dataORS = await responseORS.json();
+        if (!dataORS.features || dataORS.features.length === 0)
+            throw new Error("No se encontraron rutas.");
+        return {
+            distancia: (dataORS.features[0].properties.summary.distance / 1000) * factorCorrecKmReal,
+            tiempo: (dataORS.features[0].properties.summary.duration / 60) * factorCorrecTiemReal,
+            geometry: dataORS.features[0].geometry
+        };
+    }
+}
+
 /* Función enlistarPuntosFijos. Despliega en los cajones de búsqueda de coodenadas (y direcciones próximamente)
  * un listado de puntos conocidos o frecuentes, para hacer más fácil su accesibilidad al talvez cambiar 
  * tarifas y recalcular la cotización. */
@@ -39,84 +94,31 @@ function enlistarPuntosGuardados() {
     console.log("✅ Desplegable único compartido y listo para filtrar por nombre.");
 }
 
-// Escuchador que recibe las coordenadas desde el mapa gráfico
-window.addEventListener('message', function(evento) {
-    const coodenadas = evento.data;
-    if (coodenadas && coodenadas.tipo === 'NUEVAS_COORDENADAS') {
-        console.warn("llegaron las coordenadas");
-        // VALIDACIÓN CLAVE: Verificamos si el usuario seleccionó previamente algún cajón
-        //if (ultimoInputConFoco) {
-            // Aquí puedes armar la cadena como tú prefieras. Ejemplo: "Lat, Lng"
-            const cadenaCoordenadas = `${coodenadas.latitud}, ${coodenadas.longitud}`;
-            // Inyectamos los datos directamente en el cajón guardado en memoria
-            window.ultimoInputConFoco.value = cadenaCoordenadas;
-            // Disparamos el evento input por si tienes validaciones en tiempo real
-            //ultimoInputConFoco.dispatchEvent(new Event('input', { bubbles: true }));
-            // OPCIONAL: Le devolvemos el foco visualmente si quieres que el cursor siga ahí
-            //ultimoInputConFoco.focus();
-            // después de llenar se pierda todos los focos, y tenga q seleccionar nuevamente
-            window.ultimoInputConFoco = null;
-        //} else {
-        //    console.warn("No se han inyectado las coordenadas porque no has seleccionado ningún cajón en el formulario.");
-        //    alert("Primero selecciona el campo que quieres llenar (base, punto A o punto B");
-        //}
-    } else {
-        console.warn("NO llegaron las coordenadas");
-    }
+//cajones de coordenadas o datos
+const inptPuntoBase = document.getElementById('puntoBase');//.value;
+const inptpuntoA = document.getElementById('puntoA');//.value;
+const inptpuntoB = document.getElementById('puntoB');//.value;
+
+[inptPuntoBase, inptpuntoA, inptpuntoB].forEach(input => {
+    input.addEventListener("input", function () {
+        const txtInpt = this.value;
+        const datalist = document.getElementById('puntos_guardados');
+        const opcionSeleccionada = Array.from(datalist.options).find(option => option.value === txtInpt);
+        if (opcionSeleccionada) {
+            // Guardamos las coordenadas en el dataset del INPUT, no en el value
+            this.dataset.geo = opcionSeleccionada.dataset.coordenadas;
+        } else {
+            // Si el usuario borra o escribe texto libre, limpiamos el dato previo
+            this.dataset.geo = ""; 
+        }
+    });
 });
-function extraerCoordenadas(texto) {
-    const regex = /([-+]?\d+\.\d+)\s*,\s*([-+]?\d+\.\d+)/;
-    const match = texto.match(regex);
-    if (match) {
-        return {
-            lat: parseFloat(match[1]), // Corregido: Grupo 1 capturado
-            lng: parseFloat(match[2])  // Corregido: Grupo 2 capturado
-        };
-    }
-    return null;
-}
-async function obtenerDatosRutaOSM(origenStr, destinoStr) {
-    const cordOrigen = extraerCoordenadas(origenStr);
-    const cordDestino = extraerCoordenadas(destinoStr);
-    if (!cordOrigen || !cordDestino) {
-        throw new Error("Por favor, ingresa las coordenadas en formato válido: Lat, Lng (Ej: 3.437333, -76.506762)");
-    }
-    // Proveedor Principal OSRM
-    const urlOSRM = `https://router.project-osrm.org/route/v1/driving/${cordOrigen.lng},${cordOrigen.lat};${cordDestino.lng},${cordDestino.lat}?overview=full&geometries=geojson`;
-    // Proveedor Secundario de Respaldo Abierto
-    const urlORS = `https://openrouteservice.org/${cordOrigen.lng},${cordOrigen.lat}&end=${cordDestino.lng},${cordDestino.lat}`;
-    try {
-        const response = await fetch(urlOSRM);
-        if (!response.ok)
-            throw new Error("Intentando Plan de Respaldo...");
-        const data = await response.json();
-        if (data.code !== 'Ok' || !data.routes || data.routes.length === 0)
-            throw new Error("Ruta no comercial.");
-        return {
-            distancia: data.routes[0].distance / 1000,
-            tiempo: data.routes[0].duration / 60,
-            geometry: data.routes[0].geometry
-        };
-    } catch (err) {
-        console.warn("Fallo OSRM, usando respaldo:", err.message);
-        const responseORS = await fetch(urlORS);
-        if (!responseORS.ok)
-            throw new Error("Servidores saturados. Revisa tu conexión.");
-        const dataORS = await responseORS.json();
-        if (!dataORS.features || dataORS.features.length === 0)
-            throw new Error("No se encontraron rutas.");
-        return {
-            distancia: dataORS.features[0].properties.summary.distance / 1000,
-            tiempo: dataORS.features[0].properties.summary.duration / 60,
-            geometry: dataORS.features[0].geometry
-        };
-    }
-}
+
 async function procesarRutasYCalcular() {
-    //datos de los cajones
-    const base = document.getElementById('puntoBase').value;
-    const puntoA = document.getElementById('puntoA').value;
-    const puntoB = document.getElementById('puntoB').value;
+    const base = inptPuntoBase.dataset.geo || inptPuntoBase.value;;
+    const puntoA = inptpuntoA.dataset.geo || inptpuntoA.value;
+    const puntoB = inptpuntoB.dataset.geo || inptpuntoB.value;
+    
     if (!base || !puntoA || !puntoB) {
         alert("Por favor llena todos los campos requeridos.");
         return;
@@ -144,12 +146,12 @@ async function procesarRutasYCalcular() {
             cambioPuntosViaje = true;
         }
         // DISPARADOR INTELIGENTE DE COTIZACIÓN
-        // Ejecutamos la matemática si hubo un cambio de selectores O si se trajeron datos nuevos de red
+        // Ejecutamos la matemática si hubo un cambio de selectores O si se introdujeron datos nuevos
         if (cambioPuntosViaje || cambioTipoViaje) {
             // Consolidación de datos usando la caché (fija o recién actualizada)
-            const kmsVacio = cacheRecog.distancia + cacheRetor.distancia;
+            const kmsVacio = (cacheRecog.distancia + cacheRetor.distancia);
             const kmsCarga = cacheCarga.distancia;
-            const horasViaje = (cacheRecog.tiempo + cacheCarga.tiempo + cacheRetor.tiempo) / 60;
+            const horasViaje = ((cacheRecog.tiempo + cacheCarga.tiempo + cacheRetor.tiempo) / 60);
             // Llamamos la función matemática central de init.js
             calcularCotizacion(kmsVacio, kmsCarga, horasViaje);
             // Actualizamos el historial de coordenadas para la siguiente revisión
@@ -161,6 +163,33 @@ async function procesarRutasYCalcular() {
         alert(error.message);
     }
 }
+
+// Escuchador que recibe las coordenadas desde el mapa gráfico
+window.addEventListener('message', function(evento) {
+    const coodenadas = evento.data;
+    if (coodenadas && coodenadas.tipo === 'NUEVAS_COORDENADAS') {
+        console.log("llegaron las coordenadas");
+        // VALIDACIÓN CLAVE: Verificamos si el usuario seleccionó previamente algún cajón
+        //if (ultimoInputConFoco) {
+            // Aquí puedes armar la cadena como tú prefieras. Ejemplo: "Lat, Lng"
+            const cadenaCoordenadas = `${coodenadas.latitud}, ${coodenadas.longitud}`;
+            // Inyectamos los datos directamente en el cajón guardado en memoria
+            window.ultimoInputConFoco.value = cadenaCoordenadas;
+            // Disparamos el evento input por si tienes validaciones en tiempo real
+            //ultimoInputConFoco.dispatchEvent(new Event('input', { bubbles: true }));
+            // OPCIONAL: Le devolvemos el foco visualmente si quieres que el cursor siga ahí
+            //ultimoInputConFoco.focus();
+            // después de llenar se pierda todos los focos, y tenga q seleccionar nuevamente
+            // para q pueda seguir navegando en el mapa sin que se cambie el último valor
+            window.ultimoInputConFoco = null;
+        //} else {
+        //    console.warn("No se han inyectado las coordenadas porque no has seleccionado ningún cajón en el formulario.");
+        //    alert("Primero selecciona el campo que quieres llenar (base, punto A o punto B");
+        //}
+    } else {
+        console.warn("NO llegaron las coordenadas");
+    }
+});
 
 document.addEventListener("DOMContentLoaded", function () {
     enlistarPuntosGuardados();
