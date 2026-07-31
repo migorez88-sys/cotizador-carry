@@ -40,3 +40,66 @@ input, select {
 input:focus, select:focus {
     border-color: var(--accent);
 }
+/*ALUMBRADO DEL INPUT PARA SEÑALAR ERRORES O FALTA DE LLENADO*/
+/* Clase que aplica el alumbrado */
+.input_error_shake {
+    border-color: #ef4444 !important; /* Rojo de advertencia */
+    box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.4) !important; /* Resplandor exterior */
+    animation: alumbrarYVibrar 0.4s ease-in-out;
+    transition: all 0.3s ease;
+}
+/* Animación sutil de vibración y pulso */
+@keyframes alumbrarYVibrar {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+}
+
+/* contenedor campo alterno 
+ Contenedor relativo para posicionar el globo DE TEXTO DESCRIPTIVO */
+.tooltip_container {
+    position: relative;
+    display: inline-block;
+/*    width: 100%;  Ajusta según tu diseño */
+    text-align: justify;
+}
+/* Diseño del globo de texto (oculto por defecto) */
+.tooltip_container::after {
+    content: attr(data-tooltip);  /*Toma el texto del atributo HTML */
+    position: absolute;
+    bottom: 125%;  /*Lo ubica arriba del input */
+    left: 50%;
+    transform: translateX(-50%) scale(0.9);
+    background-color: #2d3748; /* Color gris oscuro de software moderno */
+    color: #ffffff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    white-space: pre-wrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    width: 200px;         /* Define un ancho fijo para el globo */
+}
+/* Pequeña flecha apuntando hacia abajo */
+.tooltip_container::before {
+    content: "";
+    position: absolute;
+    bottom: 110%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #2d3748 transparent transparent transparent;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    z-index: 10;
+}
+/* Muestra el globo y la flecha al pasar el mouse por encima */
+.tooltip_container:hover::after,
+.tooltip_container:hover::before {
+    opacity: 1;
+    transform: translateX(-50%) scale(1);
+}

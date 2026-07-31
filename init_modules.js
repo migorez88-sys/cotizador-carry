@@ -12,12 +12,10 @@ function verificarCambiosTipoViaje() {
     const selectTipoOperacion   = document.getElementById('tipoOperacion_display')?.value || 'normal';
     const selectTipoTrafico     = document.getElementById('tipoTrafico_display')?.value || 'valle';
     // REGLA DE ORO: Si los 3 valores actuales son IGUALES a los guardados en la caché, NO CALCULES NADA
-    if (
-        selectTipoCarga     === lastStateTipos.lastTipoCarga &&
-        selectTipoOperacion === lastStateTipos.lastTipoOperacion &&
-        selectTipoTrafico   === lastStateTipos.lastTipoTrafico
-    ) {
-        console.log("⚡ Selects sin cambios. Recálculo cancelado para ahorrar RAM.");
+    if (    selectTipoCarga === lastStateTipos.lastTipoCarga &&
+            selectTipoOperacion === lastStateTipos.lastTipoOperacion &&
+            selectTipoTrafico === lastStateTipos.lastTipoTrafico ) {
+        console.log("⚡ Selects de factores de viaje, sin cambios.");
         return false; // Retorna falso: Significa "No hay cambios reales"
     }
     // Si el código llega aquí, significa que el usuario SÍ movió algún selector

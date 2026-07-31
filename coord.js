@@ -1,7 +1,9 @@
-let
-        lastBase,
-        lastPuntoA,
-        lastPuntoB = null;
+let lastOrigen,
+    lastPuntoA,
+    lastPuntoB,
+    lastRetorAlt,
+    lastTipoRetorno = null;// Guardará 'ORIGEN' o 'ALTERNO'
+
 // Caché de datos calculados (Guarda distancia y tiempo de cada tramo)
 let
         cacheRecog,
@@ -13,13 +15,16 @@ let
 window.ultimoInputConFoco = null;
 
 // Cuando el usuario haga clic o entre a un input, guardamos la referencia de ese cajón
-document.getElementById('puntoBase').addEventListener('focus', function() {
+document.getElementById('puntoOrigen').addEventListener('focus', function() {
     window.ultimoInputConFoco = this;
 });
 document.getElementById('puntoA').addEventListener('focus', function() {
     window.ultimoInputConFoco = this;
 });
 document.getElementById('puntoB').addEventListener('focus', function() {
+    window.ultimoInputConFoco = this;
+});
+document.getElementById('puntoAlterno').addEventListener('focus', function() {
     window.ultimoInputConFoco = this;
 });
 
@@ -45,8 +50,10 @@ async function obtenerDatosRutaOSM(origenStr, destinoStr) {
     const urlOSRM = `https://router.project-osrm.org/route/v1/driving/${cordOrigen.lng},${cordOrigen.lat};${cordDestino.lng},${cordDestino.lat}?overview=full&geometries=geojson`;
     // Proveedor Secundario de Respaldo Abierto
     const urlORS = `https://openrouteservice.org/${cordOrigen.lng},${cordOrigen.lat}&end=${cordDestino.lng},${cordDestino.lat}`;
+    // factor correctivo para obtención de datos de ruta más realistas ya q OMS solo calcula la ruta ideal
     const factorCorrecKmReal = 1.159;
     const factorCorrecTiemReal = 1.42;
+    // consulta a la web de mapas
     try {
         const response = await fetch(urlOSRM);
         if (!response.ok)
@@ -54,6 +61,7 @@ async function obtenerDatosRutaOSM(origenStr, destinoStr) {
         const data = await response.json();
         if (data.code !== 'Ok' || !data.routes || data.routes.length === 0)
             throw new Error("Ruta no comercial.");
+        console.log("Usando proveedor de mapas principal: OSRM");
         return {
             distancia: (data.routes[0].distance / 1000) * factorCorrecKmReal,
             tiempo: (data.routes[0].duration / 60) * factorCorrecTiemReal,
@@ -67,6 +75,7 @@ async function obtenerDatosRutaOSM(origenStr, destinoStr) {
         const dataORS = await responseORS.json();
         if (!dataORS.features || dataORS.features.length === 0)
             throw new Error("No se encontraron rutas.");
+        console.log("Usando proveedor de mapas secundario: ORS");
         return {
             distancia: (dataORS.features[0].properties.summary.distance / 1000) * factorCorrecKmReal,
             tiempo: (dataORS.features[0].properties.summary.duration / 60) * factorCorrecTiemReal,
@@ -95,11 +104,12 @@ function enlistarPuntosGuardados() {
 }
 
 //cajones de coordenadas o datos
-const inptPuntoBase = document.getElementById('puntoBase');//.value;
-const inptpuntoA = document.getElementById('puntoA');//.value;
-const inptpuntoB = document.getElementById('puntoB');//.value;
+const inptPuntoOrigen = document.getElementById('puntoOrigen');//.value;
+const inptPuntoA = document.getElementById('puntoA');//.value;
+const inptPuntoB = document.getElementById('puntoB');//.value;
+const inptPuntoAlterno = document.getElementById('puntoAlterno');
 
-[inptPuntoBase, inptpuntoA, inptpuntoB].forEach(input => {
+[inptPuntoOrigen, inptPuntoA, inptPuntoB, inptPuntoAlterno].forEach(input => {//
     input.addEventListener("input", function () {
         const txtInpt = this.value;
         const datalist = document.getElementById('puntos_guardados');
@@ -115,52 +125,101 @@ const inptpuntoB = document.getElementById('puntoB');//.value;
 });
 
 async function procesarRutasYCalcular() {
-    const base = inptPuntoBase.dataset.geo || inptPuntoBase.value;;
-    const puntoA = inptpuntoA.dataset.geo || inptpuntoA.value;
-    const puntoB = inptpuntoB.dataset.geo || inptpuntoB.value;
-    
-    if (!base || !puntoA || !puntoB) {
+    // inputs obligados
+    const inptsReq = [
+        inptPuntoOrigen,
+        inptPuntoA,
+        inptPuntoB
+    ];
+    // 1. Filtramos y obtenemos un arreglo con TODOS los inputs que estén vacíos
+    let inputsVacios = inptsReq.filter(inpt => !(inpt.dataset.geo || inpt.value.trim()));
+    // 2. Si hay al menos un input vacío, activamos la alerta global
+    if (inputsVacios.length > 0) {
         alert("Por favor llena todos los campos requeridos.");
-        return;
+        // Recorremos solo los inputs que faltaron para aplicarles el efecto al mismo tiempo
+        inputsVacios.forEach(inpt => {
+            inpt.classList.add('input_error_shake');
+            setTimeout(() => {
+                inpt.classList.remove('input_error_shake');
+            }, 1500);
+        });
+        // Buenas prácticas: Ponemos el cursor en el primer campo vacío de la lista
+        inputsVacios[0].focus();
+        return; // Detiene la ejecución del formulario porque faltan datos
     }
+    // el código continúa si todo lo esencial está lleno...
+    const pntOrigen = inptPuntoOrigen.dataset.geo || inptPuntoOrigen.value;
+    const puntoA = inptPuntoA.dataset.geo || inptPuntoA.value;
+    const puntoB = inptPuntoB.dataset.geo || inptPuntoB.value;
     // CONTROL DE SELECTORES: Si SOLO cambiaron los selectores, no tocamos la API de OSM - AI
     const   cambioTipoViaje = verificarCambiosTipoViaje();
     let     cambioPuntosViaje = false;
+    // preparamos consulta al servidor si hay tal caso
     try {
-        // TRAMO 1: Recogida (Base -> Punto A)
-        // Solo va a internet si la base o el punto A cambiaron, o si no hay caché
-        if (base !== lastBase || puntoA !== lastPuntoA || !cacheRecog) {
-            cacheRecog = await obtenerDatosRutaOSM(base, puntoA);
+        // Solo va a internet si los puntos cambian o si no hay caché, comprobados uno por uno
+        // TRAMO 1 (Recogida): origen -> Punto A
+        if (pntOrigen !== lastOrigen || puntoA !== lastPuntoA || !cacheRecog) {
+            cacheRecog = await obtenerDatosRutaOSM(pntOrigen, puntoA);
+            lastOrigen = pntOrigen;
+            //lastPuntoA = puntoA; // // CORRECCIÓN: Quitamos la asignación prematura de lastPuntoA aquí para no romper el Tramo 2
             cambioPuntosViaje = true;
+            console.log(`🔄 Recalculando Tramo 1: Recogida de carga`);
         }
-        // TRAMO 2: Viaje con Carga (Punto A -> Punto B)
-        // Solo va a internet si el punto A o el punto B cambiaron, o si no hay caché
+        // TRAMO 2 (Viaje con Carga): Punto A -> Punto B
         if (puntoA !== lastPuntoA || puntoB !== lastPuntoB || !cacheCarga) {
             cacheCarga = await obtenerDatosRutaOSM(puntoA, puntoB);
+            lastPuntoA = puntoA; // Ahora sí, se actualiza de forma segura para ambos tramos
+            lastPuntoB = puntoB;
+            cambioPuntosViaje = true;
+            console.log(`🔄 Recalculando Tramo 2: Viaje con carga o cargado`);
+        }
+        // TRAMO 3 (Retorno al punto de partida o punto alternativo): Punto B -> origen/otro
+        // si hay final de ruta alterno al origen
+        // 1. Capturamos y limpiamos el valor del punto alterno
+        // Aseguramos un string vacío '' por defecto si los dos atributos son undefined
+        const pntRetorAlt = (inptPuntoAlterno.dataset.geo || inptPuntoAlterno.value || '').trim();
+        // 2. Determinamos el destino real del retorno y su tipo
+        const tieneAlternoValido = pntRetorAlt !== "" && pntRetorAlt !== pntOrigen;
+        const destinoRetornoReal = tieneAlternoValido ? pntRetorAlt : pntOrigen;
+        const tipoRetornoActual = tieneAlternoValido ? 'ALTERNO' : 'ORIGEN';
+        // 3. CONTROL CRÍTICO DE CAMBIOS (Verifica si cambió el Punto B, el destino final o el tipo de retorno)
+        const huboCambioEnRetorno = puntoB !== lastPuntoB ||
+                tipoRetornoActual !== lastTipoRetorno ||
+                (tipoRetornoActual === 'ALTERNO' && pntRetorAlt !== lastRetorAlt) ||
+                (tipoRetornoActual === 'ORIGEN' && pntOrigen !== lastOrigen);
+        if (huboCambioEnRetorno || !cacheRetor) {
+            console.log(`🔄 Recalculando Tramo 3 hacia: ${tipoRetornoActual}`);
+            // Llamada única a la API usando el destino real calculado
+            cacheRetor = await obtenerDatosRutaOSM(puntoB, destinoRetornoReal);
+            // 4. Actualizamos el historial de caché de forma estricta
+            lastPuntoB = puntoB;
+            lastTipoRetorno = tipoRetornoActual;
+            if (tieneAlternoValido) {
+                lastRetorAlt = pntRetorAlt;
+            } else {
+                lastOrigen = pntOrigen;
+            }
             cambioPuntosViaje = true;
         }
-        // TRAMO 3: Retorno al punto de partida (Punto B -> Base)
-        // Solo va a internet si el punto B o la base cambiaron, o si no hay caché
-        if (puntoB !== lastPuntoB || base !== lastBase || !cacheRetor) {
-            cacheRetor = await obtenerDatosRutaOSM(puntoB, base);
-            cambioPuntosViaje = true;
-        }
+        if (cambioPuntosViaje)
+            console.log("Cambio en los puntos de la ruta.");
         // DISPARADOR INTELIGENTE DE COTIZACIÓN
         // Ejecutamos la matemática si hubo un cambio de selectores O si se introdujeron datos nuevos
         if (cambioPuntosViaje || cambioTipoViaje) {
             // Consolidación de datos usando la caché (fija o recién actualizada)
+            // CORRECCIÓN: Validación defensiva. Si por algún motivo una caché falló, no calcula datos rotos
+            if (!cacheRecog || !cacheCarga || !cacheRetor) {
+                throw new Error("No se pudieron consolidar las rutas de los mapas.");
+            }
             const kmsVacio = (cacheRecog.distancia + cacheRetor.distancia);
             const kmsCarga = cacheCarga.distancia;
             const horasViaje = ((cacheRecog.tiempo + cacheCarga.tiempo + cacheRetor.tiempo) / 60);
-            // Llamamos la función matemática central de init.js
+            // Llamamos la función matemática central de init_modules.js
             calcularCotizacion(kmsVacio, kmsCarga, horasViaje);
-            // Actualizamos el historial de coordenadas para la siguiente revisión
-            lastBase = base;
-            lastPuntoA = puntoA;
-            lastPuntoB = puntoB;
         }
     } catch (error) {
-        alert(error.message);
+        console.error("Error en procesamiento: ", error);
+        alert(error.message || "Ocurrió un error inesperado calculando las rutas.");
     }
 }
 

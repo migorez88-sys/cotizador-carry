@@ -9,7 +9,7 @@
     </head>
     <body>
         <div class="tarjeta_modulo">
-       <!-- target="_self": Es el comportamiento por defecto. Si haces clic, el inicio (index.html) se abriría adentro
+            <!-- target="_self": Es el comportamiento por defecto. Si haces clic, el inicio (index.html) se abriría adentro
             del cuadrito chiquito del iframe, lo cual desarmaría visualmente tu layout.
             target="_blank": Abre explícitamente una pestaña nueva.
             target="_top": Le ordena al navegador: "Sal de cualquier iframe en el que estés atrapado y carga este nuevo
@@ -32,7 +32,7 @@
             <div class="input_group">
                 <label>🏠 Punto Base / Origen (Coordenadas Lat, Lng):</label>
                     <input type="text" 
-                           id="puntoBase" 
+                           id="puntoOrigen" 
                            list="puntos_guardados"
                            value=""
                            placeholder="3.437351, -76.506770">
@@ -52,6 +52,17 @@
                        list="puntos_guardados"
                        value=""
                        placeholder="3.477987, -76.481571">
+            </div>
+            <div class="input_group">
+                <label>🏢 Alternativa de Retorno (Si no retorna al origen - Lat, Lng):</label>
+                <div class="tooltip_container" 
+                     data-tooltip="Campo alternativo: señala el lugar a donde irás después de entregar la encomienda, si es que no terminas en el mismo origen de esta ruta. Si no lo llenas se asumirá que retornas al mismo punto de origen.">
+                <input type="text" 
+                       id="puntoAlterno"                           
+                       list="puntos_guardados"
+                       value=""
+                       placeholder="3.477987, -76.481571">
+                </div>
             </div>
             <div class="input_group">
                 <label for="tipoCarga_display">📦 Tipo de Carga / Rodamiento:</label>

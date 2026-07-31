@@ -37,7 +37,11 @@
         <div class="mod_cont_pant_divid">
             <!-- AREA 1: El Mapa Gráfico -->
             <div id="mapa_grafico"></div>
-            <!-- 2. Tu módulo embebido importado directamente -->
+            <!-- BOTÓN "mi ubicación" FLOTANTE OPTIMIZADO -->
+            <button type="button" id="btn_mi_ubicacion" onclick="ModuloMapa.obtenerUbicacionActual()">
+                📍
+            </button>
+            <!-- Tu módulo embebido importado directamente -->
             <iframe id="iframe_cont_coord" src="coord.html"></iframe>
         </div>
         <script defer src="mapa.js"></script>
