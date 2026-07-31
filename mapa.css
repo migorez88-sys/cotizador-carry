@@ -8,6 +8,7 @@ html, body {
 }
 /* CONTENEDOR PRINCIPAL: Modo Computador (Lado a lado en horizontal) */
 .mod_cont_pant_divid {
+    position: relative; /* Obligatorio para que el botón "mi ubicación" se posicione respecto a este contenedor */
     display: flex;
     flex-direction: row;
     width: 100%;
@@ -19,6 +20,52 @@ html, body {
     height: 100%;
     background-color: #e5e3df;
 }
+
+/* BOTÓN "mi ubicación" FLOTANTE ESTILO GPS PROFESIONAL */
+#btn_mi_ubicacion {
+    position: absolute;
+    bottom: 20px;       /* Separación del borde inferior del mapa */
+    left: 20px;         /* Esquina izquierda, lejos del iframe */
+    z-index: 1000;      /* Obligatorio para quedar por encima de las capas de Leaflet */
+    /* Diseño circular y discreto */
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.9); /* Blanco elegante con leve transparencia */
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    font-size: 20px;
+    cursor: pointer;
+    /* Centrado perfecto del emoji */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Sombra suave de interfaz moderna */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+}
+/* Interacciones visuales */
+#btn_mi_ubicacion:hover {
+    background-color: #ffffff;
+    transform: scale(1.05); /* Efecto sutil de crecimiento */
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+#btn_mi_ubicacion:active {
+    transform: scale(0.95); /* Efecto de hundido al presionarlo */
+    background-color: #f0f0f0;
+}
+/* ADAPTACIÓN PARA MÓVILES (Menor a 768px) */
+@media (max-width: 768px) {
+    #btn_mi_ubicacion {
+        /* En celulares, como el iframe mide 250px abajo, subimos el botón 
+           para que flote exactamente en la esquina inferior del mapa */
+        bottom: 270px; /* 250px del iframe + 20px de separación interna */
+        left: 15px;
+        width: 42px;   /* Un toque más pequeño para pantallas táctiles */
+        height: 42px;
+    }
+}
+/*---*/
+
 /* lado der formulario */
 #iframe_cont_coord {
     width: 350px; /* Define aquí el ancho ideal de tu módulo (ej. 350px, 400px o "max-content") */
@@ -27,6 +74,7 @@ html, body {
     border: none;
     border-left: 2px solid #ccc; /* Línea divisoria gris entre módulos */
 }
+
 /* RESPONSIVE: Modo Móvil (Pantallas menores a 768px de ancho) */
 @media (max-width: 768px) {
     .mod_cont_pant_divid {
