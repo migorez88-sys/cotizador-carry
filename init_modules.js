@@ -69,39 +69,35 @@ function copiarWhatsApp() {
 function calcularCotizacion(kmsVacio, kmsCarga, horasViaje) {
     // Capturar valores de selects tipo viaje (mis tres selects generales: tipoCarga, tipoOperacion, tipoTrafico)
     // Optimización de captura de selectores globales y sus factores matemáticos
-    const tipoCarga = document.getElementById('tipoCarga_display')?.value || 'suave';
+    const tipoCarga     = document.getElementById('tipoCarga_display')?.value     || 'suave';
     const tipoOperacion = document.getElementById('tipoOperacion_display')?.value || 'normal';
-    const tipoTrafico = document.getElementById('tipoTrafico_display')?.value || 'valle';
+    const tipoTrafico   = document.getElementById('tipoTrafico_display')?.value   || 'valle';
     // Extracción directa de multiplicadores desde las matrices de la Carry
-    const factorTipoCarga = TARIFAS_CARRY.FACTORES_TIPOCARGA[tipoCarga];
-    const factorOperativo = TARIFAS_CARRY.FACTORES_OPERACION[tipoOperacion];
-    const factorTrafico = TARIFAS_CARRY.FACTORES_TRAFICO[tipoTrafico];
+    const factorTipoCarga = TARIFAS_CARRY.FACTORES_TIPOCARGA[tipoCarga]     || 1;
+    const factorOperativo = TARIFAS_CARRY.FACTORES_OPERACION[tipoOperacion] || 1;
+    const factorTrafico   = TARIFAS_CARRY.FACTORES_TRAFICO[tipoTrafico]     || 1;
     // 4. MATEMÁTICA LOGÍSTICA DE LA SUZUKI CARRY
     // costos de combustible
     const costoCombustible =
             (kmsVacio / TARIFAS_CARRY.cons) * TARIFAS_CARRY.gaso +
             (kmsCarga / TARIFAS_CARRY.cons) * TARIFAS_CARRY.gaso * factorTipoCarga;
-    ;
     /* costos rodamiento del vehículo */
-    // kms vacío equivale al recorrido hecho para ir a buscar la carga + el regreso a la base o sede
+    // kms vacío equivale al recorrido hecho para ir a buscar la carga + el retorno al origen o a donde se elija
+    // 1. Costo base por los kilómetros recorridos (Vacío + Carga)
     const costRodaVacio = kmsVacio * TARIFAS_CARRY.km_base;
     const costRodaCargaBase = kmsCarga * TARIFAS_CARRY.km_base;
-    const recargoTipoCarga = costRodaCargaBase * (factorTipoCarga - 1);
-    let   recargotipoOperacion = 0;
-    if (tipoOperacion === 'trocha') {
-        recargotipoOperacion = costRodaCargaBase * TARIFAS_CARRY.km_base * (factorOperativo - 1);
-    }
-    const costRodaCarga = costRodaCargaBase + recargoTipoCarga + recargotipoOperacion;
-    // total por rodamiento de vehículo
-    const costoRodamiento = costRodaVacio + costRodaCarga;
+    // 2. Cálculo directo de recargos sobre la base de la carga sumamos los excesos de los factores de forma lineal
+    const factorTotalRecargos = 1 + ( (factorTipoCarga - 1) + (factorOperativo - 1) );
+    const costoRodamiento = costRodaVacio + (costRodaCargaBase * factorTotalRecargos);
     /* conductor */
     const costoLaborViaje = horasViaje * TARIFAS_CARRY.hora * factorOperativo;
-    // total 
+    // total acumulado afectado por el factor tráfico (hora pico / valle)
     let totalTarifa = (costoCombustible + costoRodamiento + costoLaborViaje) * factorTrafico;
     if (totalTarifa < TARIFAS_CARRY.tar_min) {
         totalTarifa = TARIFAS_CARRY.tar_min;
     }
-    const costoExtras = document.getElementById('extras')?.value || 0;
+    const extraRaw = document.getElementById('extras')?.value || 0;
+    const costoExtras = parseFloat(extraRaw) || 0;
     totalTarifa += costoExtras;
     // 5. MOSTRAR EL RESULTADO EN PANTALLA
     // Todas tus páginas deben tener una etiqueta con id="totalTarifa_display"
@@ -129,7 +125,6 @@ function calcularCotizacion(kmsVacio, kmsCarga, horasViaje) {
         if (moduloActual.includes('coord.html')) {
             summaryText += "\nEstimación de ruta generada mediante mapas de código abierto.";
         }
-
         document.getElementById('loadingMsg').style.display = 'none';
         document.getElementById('summaryText').innerText = summaryText;
         document.getElementById('resultBox').style.display = 'block';

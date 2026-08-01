@@ -161,7 +161,8 @@ async function procesarRutasYCalcular() {
         if (pntOrigen !== lastOrigen || puntoA !== lastPuntoA || !cacheRecog) {
             cacheRecog = await obtenerDatosRutaOSM(pntOrigen, puntoA);
             lastOrigen = pntOrigen;
-            //lastPuntoA = puntoA; // // CORRECCIÓN: Quitamos la asignación prematura de lastPuntoA aquí para no romper el Tramo 2
+            // CORRECCIÓN: Quitamos la asignación prematura de lastPuntoA aquí para no romper el Tramo 2
+            //lastPuntoA = puntoA; 
             cambioPuntosViaje = true;
             console.log(`🔄 Recalculando Tramo 1: Recogida de carga`);
         }
@@ -229,7 +230,7 @@ window.addEventListener('message', function(evento) {
     if (coodenadas && coodenadas.tipo === 'NUEVAS_COORDENADAS') {
         console.log("llegaron las coordenadas");
         // VALIDACIÓN CLAVE: Verificamos si el usuario seleccionó previamente algún cajón
-        //if (ultimoInputConFoco) {
+        if (ultimoInputConFoco !== null) {
             // Aquí puedes armar la cadena como tú prefieras. Ejemplo: "Lat, Lng"
             const cadenaCoordenadas = `${coodenadas.latitud}, ${coodenadas.longitud}`;
             // Inyectamos los datos directamente en el cajón guardado en memoria
@@ -241,12 +242,12 @@ window.addEventListener('message', function(evento) {
             // después de llenar se pierda todos los focos, y tenga q seleccionar nuevamente
             // para q pueda seguir navegando en el mapa sin que se cambie el último valor
             window.ultimoInputConFoco = null;
-        //} else {
-        //    console.warn("No se han inyectado las coordenadas porque no has seleccionado ningún cajón en el formulario.");
-        //    alert("Primero selecciona el campo que quieres llenar (base, punto A o punto B");
-        //}
+        } else {
+            console.warn("No se han inyectado las coordenadas porque no has seleccionado ningún cajón en el formulario.");
+            alert("Primero selecciona el campo que quieres llenar (base, punto A o punto B");
+        }
     } else {
-        console.warn("NO llegaron las coordenadas");
+        console.warn("No llegaron las coordenadas");
     }
 });
 
