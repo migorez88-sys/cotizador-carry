@@ -5,27 +5,56 @@ let lastOrigen,
     lastTipoRetorno = null;// Guardará 'ORIGEN' o 'ALTERNO'
 
 // Caché de datos calculados (Guarda distancia y tiempo de cada tramo)
-let
-        cacheRecog,
-        cacheCarga,
-        cacheRetor = null;
+let cacheRecog,
+    cacheCarga,
+    cacheRetor = null;
 
 // Variable global en el módulo de coordenadas para recordar el cajón seleccionado
 // Declaramos la variable en la ventana global del iframe
 window.ultimoInputConFoco = null;
 
+//cajones de coordenadas o datos
 // Cuando el usuario haga clic o entre a un input, guardamos la referencia de ese cajón
-document.getElementById('puntoOrigen').addEventListener('focus', function() {
-    window.ultimoInputConFoco = this;
-});
-document.getElementById('puntoA').addEventListener('focus', function() {
-    window.ultimoInputConFoco = this;
-});
-document.getElementById('puntoB').addEventListener('focus', function() {
-    window.ultimoInputConFoco = this;
-});
-document.getElementById('puntoAlterno').addEventListener('focus', function() {
-    window.ultimoInputConFoco = this;
+const inptsMapa = [
+    document.getElementById('puntoOrigen'),
+    document.getElementById('puntoA'),
+    document.getElementById('puntoB'),
+    document.getElementById('puntoAlterno')
+];
+inptsMapa.forEach(input => {
+    input.addEventListener("focus", (evento) => {
+        const idInputActivo = evento.target.id; // 'puntoOrigen', 'puntoA', etc.
+        ultimoInputConFoco = idInputActivo;
+        // 🚀 LÍNEA NUEVA: Le avisamos al mapa principal que cambiamos de cajón
+        window.parent.postMessage({
+            tipo: 'CAMBIO_DE_FOCO',
+            idInput: idInputActivo
+        }, '*');
+    });
+    input.addEventListener("input", function () {
+        const txtInpt = this.value;
+        const datalist = document.getElementById('puntos_guardados');
+        const opcionSeleccionada = Array.from(datalist.options).find(option => option.value === txtInpt);
+        if (opcionSeleccionada) {
+            // Guardamos las coordenadas en el dataset del INPUT, no en el value
+            this.dataset.geo = opcionSeleccionada.dataset.coordenadas;
+            // ⚡ EXTRA INTELIGENTE: Si seleccionó un punto guardado, extraemos la lat y lng
+            // Asumiendo que tus coordenadas guardadas están separadas por coma (ej: "3.45, -76.53")
+            const [lat, lng] = this.dataset.geo.split(',').map(coord => parseFloat(coord.trim()));
+            if (!isNaN(lat) && !isNaN(lng)) {
+                // Le avisamos al mapa que pinte de inmediato el pin guardado en su respectivo color
+                window.parent.postMessage({
+                    tipo: 'PIN_DESDE_DATALIST',
+                    idInput: this.id,
+                    latitud: lat,
+                    longitud: lng
+                }, '*');
+            }
+        } else {
+            // Si el usuario borra o escribe texto libre, limpiamos el dato previo
+            this.dataset.geo = ""; 
+        }
+    });
 });
 
 function extraerCoordenadas(texto) {
@@ -103,33 +132,12 @@ function enlistarPuntosGuardados() {
     console.log("✅ Desplegable único compartido y listo para filtrar por nombre.");
 }
 
-//cajones de coordenadas o datos
-const inptPuntoOrigen = document.getElementById('puntoOrigen');//.value;
-const inptPuntoA = document.getElementById('puntoA');//.value;
-const inptPuntoB = document.getElementById('puntoB');//.value;
-const inptPuntoAlterno = document.getElementById('puntoAlterno');
-
-[inptPuntoOrigen, inptPuntoA, inptPuntoB, inptPuntoAlterno].forEach(input => {//
-    input.addEventListener("input", function () {
-        const txtInpt = this.value;
-        const datalist = document.getElementById('puntos_guardados');
-        const opcionSeleccionada = Array.from(datalist.options).find(option => option.value === txtInpt);
-        if (opcionSeleccionada) {
-            // Guardamos las coordenadas en el dataset del INPUT, no en el value
-            this.dataset.geo = opcionSeleccionada.dataset.coordenadas;
-        } else {
-            // Si el usuario borra o escribe texto libre, limpiamos el dato previo
-            this.dataset.geo = ""; 
-        }
-    });
-});
-
-async function procesarRutasYCalcular() {
+async function procesarMiFormularioYCalcular() {
     // inputs obligados
     const inptsReq = [
-        inptPuntoOrigen,
-        inptPuntoA,
-        inptPuntoB
+        inptsMapa[0],
+        inptsMapa[1],
+        inptsMapa[2]
     ];
     // 1. Filtramos y obtenemos un arreglo con TODOS los inputs que estén vacíos
     let inputsVacios = inptsReq.filter(inpt => !(inpt.dataset.geo || inpt.value.trim()));
@@ -148,15 +156,12 @@ async function procesarRutasYCalcular() {
         return; // Detiene la ejecución del formulario porque faltan datos
     }
     // el código continúa si todo lo esencial está lleno...
-    const pntOrigen = inptPuntoOrigen.dataset.geo || inptPuntoOrigen.value;
-    const puntoA = inptPuntoA.dataset.geo || inptPuntoA.value;
-    const puntoB = inptPuntoB.dataset.geo || inptPuntoB.value;
-    // CONTROL DE SELECTORES: Si SOLO cambiaron los selectores, no tocamos la API de OSM - AI
-    const   cambioTipoViaje = verificarCambiosTipoViaje();
-    let     cambioPuntosViaje = false;
+    const pntOrigen = inptsMapa[0].dataset.geo || inptsMapa[0].value;
+    const puntoA    = inptsMapa[1].dataset.geo || inptsMapa[1].value;
+    const puntoB    = inptsMapa[2].dataset.geo || inptsMapa[2].value;
     // preparamos consulta al servidor si hay tal caso
-    try {
-        // Solo va a internet si los puntos cambian o si no hay caché, comprobados uno por uno
+    let cambioPuntosViaje = false;
+    try {// Solo va a internet si los puntos cambian o si no hay caché, comprobados uno por uno
         // TRAMO 1 (Recogida): origen -> Punto A
         if (pntOrigen !== lastOrigen || puntoA !== lastPuntoA || !cacheRecog) {
             cacheRecog = await obtenerDatosRutaOSM(pntOrigen, puntoA);
@@ -178,7 +183,7 @@ async function procesarRutasYCalcular() {
         // si hay final de ruta alterno al origen
         // 1. Capturamos y limpiamos el valor del punto alterno
         // Aseguramos un string vacío '' por defecto si los dos atributos son undefined
-        const pntRetorAlt = (inptPuntoAlterno.dataset.geo || inptPuntoAlterno.value || '').trim();
+        const pntRetorAlt = (inptsMapa[3].dataset.geo || inptsMapa[3].value || '').trim();
         // 2. Determinamos el destino real del retorno y su tipo
         const tieneAlternoValido = pntRetorAlt !== "" && pntRetorAlt !== pntOrigen;
         const destinoRetornoReal = tieneAlternoValido ? pntRetorAlt : pntOrigen;
@@ -202,52 +207,99 @@ async function procesarRutasYCalcular() {
             }
             cambioPuntosViaje = true;
         }
-        if (cambioPuntosViaje)
-            console.log("Cambio en los puntos de la ruta.");
-        // DISPARADOR INTELIGENTE DE COTIZACIÓN
-        // Ejecutamos la matemática si hubo un cambio de selectores O si se introdujeron datos nuevos
-        if (cambioPuntosViaje || cambioTipoViaje) {
-            // Consolidación de datos usando la caché (fija o recién actualizada)
-            // CORRECCIÓN: Validación defensiva. Si por algún motivo una caché falló, no calcula datos rotos
-            if (!cacheRecog || !cacheCarga || !cacheRetor) {
-                throw new Error("No se pudieron consolidar las rutas de los mapas.");
-            }
-            const kmsVacio = (cacheRecog.distancia + cacheRetor.distancia);
-            const kmsCarga = cacheCarga.distancia;
-            const horasViaje = ((cacheRecog.tiempo + cacheCarga.tiempo + cacheRetor.tiempo) / 60);
-            // Llamamos la función matemática central de init_modules.js
-            calcularCotizacion(kmsVacio, kmsCarga, horasViaje);
-        }
     } catch (error) {
         console.error("Error en procesamiento: ", error);
         alert(error.message || "Ocurrió un error inesperado calculando las rutas.");
+        return;
+    }
+    // DISPARADOR INTELIGENTE DE COTIZACIÓN
+    // Ejecutamos la matemática si hubo un cambio de selectores O si se introdujeron datos nuevos
+    // CONTROL DE SELECTORES: Si SOLO cambiaron los selectores, no tocamos la API de OSM - AI
+    const cambioTipoViaje = verCambSelectsTipoViaje();
+    if (cambioPuntosViaje || cambioTipoViaje || window.EstadoCotizador.cacheTarifaBase === null) {
+        // Consolidación de datos usando la caché (fija o recién actualizada)
+        // CORRECCIÓN: Validación defensiva. Si por algún motivo una caché falló, no calcula datos rotos
+        if (!cacheRecog || !cacheCarga || !cacheRetor) {
+            throw new Error("No se pudieron consolidar las rutas de los mapas.");
+        }
+        const kmsVacio = (cacheRecog.distancia + cacheRetor.distancia);
+        const kmsCarga = cacheCarga.distancia;
+        const horasViaje = ((cacheRecog.tiempo + cacheCarga.tiempo + cacheRetor.tiempo) / 60);
+        // Llamamos la función matemática central de init_modules.js
+        calcularCotizacionBase(kmsVacio, kmsCarga, horasViaje);
+    }
+    if (cambioPuntosViaje){
+        console.log("Cambio en los puntos de la ruta.");
     }
 }
+
+document.getElementById('btn_calc_coord').addEventListener('click', async function() {
+    const boton = this;
+    const textoBoton = document.getElementById('btn_text_render');
+    // 🛡️ ESCUDO 1: BLOQUEO ANTIESPAM (Si el botón ya está procesando, frena de inmediato)
+    if (boton.disabled) return;
+    try {
+        // Deshabilitamos el botón y cambiamos el texto para que el usuario sepa que está cargando
+        boton.disabled = true;
+        boton.style.opacity = "0.6";
+        if (textoBoton) textoBoton.innerText = "⏳ Calculando rutas en OSM...";
+        // 1. Ejecutamos el motor de rutas. El 'await' congela el flujo hasta que internet responda
+        // Si faltan campos obligatorios, la función interna tirará un 'return' o error
+        await procesarMiFormularioYCalcular();
+        // 🛡️ ESCUDO 2: PILOTO DE VALIDACIÓN DE CACHÉ
+        // Si la función anterior falló, no fue a internet o los campos estaban vacíos, 
+        // cacheTarifaBase seguirá valiendo null. En ese caso, detenemos el flujo aquí.
+        if (window.EstadoCotizador.cacheTarifaBase === null) {
+            console.warn("⚠️ Operación cancelada: La tarifa base no se ha generado.");
+            return; 
+        }
+        // 2. TRAMO FINAL: Solo si la ruta es válida y real, consolidamos extras y pintamos
+        // Esta línea ESPERARÁ pacientemente. Solo se ejecuta cuando la función await de arriba da luz verde
+        window.renderizarCuadroResultado();
+    } catch (error) {
+        console.error("Error en la ejecución del botón:", error);
+    } finally {
+        // RESTRICCION TEMPORAL: Volvemos a habilitar el botón de forma limpia pase lo que pase
+        boton.disabled = false;
+        boton.style.opacity = "1";
+        if (textoBoton) textoBoton.innerText = "🔍 Calcular Ruta y Cotizar";
+    }
+});
 
 // Escuchador que recibe las coordenadas desde el mapa gráfico
 window.addEventListener('message', function(evento) {
     const coodenadas = evento.data;
     if (coodenadas && coodenadas.tipo === 'NUEVAS_COORDENADAS') {
         console.log("llegaron las coordenadas");
-        // VALIDACIÓN CLAVE: Verificamos si el usuario seleccionó previamente algún cajón
-        if (ultimoInputConFoco !== null) {
-            // Aquí puedes armar la cadena como tú prefieras. Ejemplo: "Lat, Lng"
+        // 🛠️ CORRECCIÓN: Buscamos el elemento real usando el ID guardado (evitamos usar 'window.variable')
+        const inputDestino = document.getElementById(ultimoInputConFoco);
+        if (inputDestino) {
             const cadenaCoordenadas = `${coodenadas.latitud}, ${coodenadas.longitud}`;
-            // Inyectamos los datos directamente en el cajón guardado en memoria
-            window.ultimoInputConFoco.value = cadenaCoordenadas;
-            // Disparamos el evento input por si tienes validaciones en tiempo real
-            //ultimoInputConFoco.dispatchEvent(new Event('input', { bubbles: true }));
-            // OPCIONAL: Le devolvemos el foco visualmente si quieres que el cursor siga ahí
-            //ultimoInputConFoco.focus();
-            // después de llenar se pierda todos los focos, y tenga q seleccionar nuevamente
-            // para q pueda seguir navegando en el mapa sin que se cambie el último valor
-            window.ultimoInputConFoco = null;
+            // Inyectamos las coordenadas en el value visualmente
+            inputDestino.value = cadenaCoordenadas;
+            // Guardamos también en el dataset para mantener la coherencia con tu lógica de rutas
+            inputDestino.dataset.geo = cadenaCoordenadas;
+            // Disparamos el evento input por si tienes validaciones en tiempo real de costos
+            inputDestino.dispatchEvent(new Event('input', { bubbles: true }));
+            // ❌ SE ELIMINA: 
+            // ultimoInputConFoco = null; 
+            // Esto permite que si el usuario vuelve a clicar el mapa, se actualice el MISMO input sin bloquearse.
         } else {
-            console.warn("No se han inyectado las coordenadas porque no has seleccionado ningún cajón en el formulario.");
-            alert("Primero selecciona el campo que quieres llenar (base, punto A o punto B");
+            console.warn("No se han inyectado las coordenadas porque no has seleccionado ningún cajón.");
+            alert("Primero selecciona el campo que quieres llenar (puntoOrigen, puntoA, puntoB o puntoAlterno)");
         }
-    } else {
-        console.warn("No llegaron las coordenadas");
+    }
+});
+
+// 🧠 ESTRATEGIA DE SEGURIDAD PARA NAVEGAR EL MAPA SIN DAÑAR DATOS:
+// Limpiamos la memoria del foco SOLO cuando el usuario hace clic afuera de los inputs (en el fondo del formulario)
+document.addEventListener('click', function(evento) {
+    // Si el clic NO fue en ninguno de nuestros inputs de coordenadas, reseteamos el foco de seguridad
+    const inputsIds = ['puntoOrigen', 'puntoA', 'puntoB', 'puntoAlterno'];
+    if (!inputsIds.includes(evento.target.id)) {
+        ultimoInputConFoco = null;
+        // También le avisamos al mapa principal que ya no hay ningún input activo
+        window.parent.postMessage({ tipo: 'CAMBIO_DE_FOCO', idInput: null }, '*');
     }
 });
 
