@@ -32,27 +32,65 @@ inptsMapa.forEach(input => {
         }, '*');
     });
     input.addEventListener("input", function () {
-        const txtInpt = this.value;
+        const txtInpt = this.value.trim();
         const datalist = document.getElementById('puntos_guardados');
+        // 1. Buscamos si el texto coincide con una opción del datalist
         const opcionSeleccionada = Array.from(datalist.options).find(option => option.value === txtInpt);
+        // 2. 🔍 NUEVA VALIDACIÓN: Expresión regular para detectar si pegó coordenadas directas (Lat, Lng)
+        // Soporta números negativos, decimales con punto y espacios intermedios opcionales
+//        const patronCoordenadas = /^-?\d+\.\d+,\s*-?\d+\.\d+$/;
+//        const esCoordenadaPegada = patronCoordenadas.test(txtInpt);
+
         if (opcionSeleccionada) {
-            // Guardamos las coordenadas en el dataset del INPUT, no en el value
+            // --- CASO A: Seleccionó de la lista de favoritos ---
             this.dataset.geo = opcionSeleccionada.dataset.coordenadas;
-            // ⚡ EXTRA INTELIGENTE: Si seleccionó un punto guardado, extraemos la lat y lng
-            // Asumiendo que tus coordenadas guardadas están separadas por coma (ej: "3.45, -76.53")
-            const [lat, lng] = this.dataset.geo.split(',').map(coord => parseFloat(coord.trim()));
-            if (!isNaN(lat) && !isNaN(lng)) {
-                // Le avisamos al mapa que pinte de inmediato el pin guardado en su respectivo color
+            const coords = extraerCoordenadas(this.dataset.geo);
+            if (coords) {
                 window.parent.postMessage({
                     tipo: 'PIN_DESDE_DATALIST',
                     idInput: this.id,
-                    latitud: lat,
-                    longitud: lng
+                    latitud: coords.lat,
+                    longitud: coords.lng
                 }, '*');
             }
+            return; // Operación exitosa, salimos del evento
+//            const [lat, lng] = this.dataset.geo.split(',').map(coord => parseFloat(coord.trim()));
+//            if (!isNaN(lat) && !isNaN(lng)) {
+//                window.parent.postMessage({
+//                    tipo: 'PIN_DESDE_DATALIST',
+//                    idInput: this.id,
+//                    latitud: lat,
+//                    longitud: lng
+//                }, '*');
+//            }
+        }
+        const coordsManuales = extraerCoordenadas(txtInpt);
+        if (coordsManuales) {
+            // --- 🚀 CASO B: El usuario PEGO coordenadas directas ---
+            console.log("🎯 Coordenadas manuales detectadas y validadas mediante pegado.");
+            // Sincronizamos el dataset con el mismo valor que pegó
+            this.dataset.geo = `${coordsManuales.lat}, ${coordsManuales.lng}`;
+            //this.dataset.geo = txtInpt;
+            // Separamos la latitud y longitud numéricas
+            //const [lat, lng] = txtInpt.split(',').map(coord => parseFloat(coord.trim()));
+            // Reutilizamos el mismo puente de postMessage para que el mapa pinte el pin al instante
+            window.parent.postMessage({
+                tipo: 'PIN_DESDE_DATALIST', // Tu mapa ya sabe procesar este tipo de mensaje perfectamente
+                idInput: this.id,
+                latitud: coordsManuales.lat,
+                longitud: coordsManuales.lng
+            }, '*');
         } else {
-            // Si el usuario borra o escribe texto libre, limpiamos el dato previo
-            this.dataset.geo = ""; 
+            // --- CASO C: El usuario está escribiendo texto libre (ej: una dirección manual) ---
+            // Limpiamos el dato previo para obligar al sistema a tratarlo como texto en la cotización
+            this.dataset.geo = "";
+            // 🚀 LÍNEA NUEVA: Si el campo quedó totalmente vacío, le ordenamos al mapa borrar el pin
+            if (txtInpt === "") {
+                window.parent.postMessage({
+                    tipo: 'BORRAR_PIN_INPUT',
+                    idInput: this.id // Envía 'puntoOrigen', 'puntoA', etc.
+                }, '*');
+            }
         }
     });
 });
