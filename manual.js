@@ -1,4 +1,6 @@
-function validarCamposManuales() { // - IA
+/* Miguel González */
+
+function validarEscrituraCampos() { // - IA
     // 1. Crear un arreglo con los IDs exactos de tus 6 inputs numéricos
     const camposId = [
         { id: 'kmsRecogida', nombre: 'Kilómetros de Recogida' },
@@ -35,24 +37,51 @@ function validarCamposManuales() { // - IA
     console.log("✅ Validación exitosa: Todos los campos están completos y correctos.");
     return true; // Retorna VERDADERO (Proceder al siguiente paso seguro)
 }
-function calcularDatosManuales(){
+
+function procesarMiFormularioYCalcular(){
     // 🖲️ PRIMER PASO: Validar la integridad de los datos - AI
-    if (!validarCamposManuales()) {
+    if (!validarEscrituraCampos()) {
         // Aquí puedes opcionalmente borrar el total de la pantalla para que no muestre datos viejos
-        document.getElementById('totalTarifa_display').innerText = "0";
-        return; 
+        const displayTotalTarifa = document.getElementById('totalTarifa_display');
+        if (displayTotalTarifa) displayTotalTarifa.innerText = "0";
+        return false;  // Retorna falso para avisarle al botón que no continúe
     }
-    // SEGUNDO PASO: Si pasó el filtro anterior, procesas tus datos con total seguridad - AI
-    // 1. Consolidación de kilómetros y tiempos
-    const kmsVacio = parseFloat(document.getElementById('kmsRecogida').value) + 
-                     parseFloat(document.getElementById('kmsRetorno').value);
-    const kmsCarga = parseFloat(document.getElementById('kmsCargado').value);
-    // Sumamos todos los minutos del circuito y los dividimos por 60 para enviarle horas a init.js
-    const minutosTotales = parseFloat(document.getElementById('minRecogida').value) + 
-                           parseFloat(document.getElementById('minCargado').value) + 
-                           parseFloat(document.getElementById('minRetorno').value);
-    const horasViaje = minutosTotales / 60;
-    calcularCotizacion(kmsVacio, kmsCarga, horasViaje);
+    // Captura limpia de strings para construir la llave de control
+    const kRec = document.getElementById('kmsRecogida').value.trim();
+    const mRec = document.getElementById('minRecogida').value.trim();
+    const kCar = document.getElementById('kmsCargado').value.trim();
+    const mCar = document.getElementById('minCargado').value.trim();
+    const kRet = document.getElementById('kmsRetorno').value.trim();
+    const mRet = document.getElementById('minRetorno').value.trim();
+    // 🎯 CREACIÓN DE LA LLAVE PILOTO (Une todos los datos separados por guiones)
+    const llaveActual = `${kRec}-${mRec}-${kCar}-${mCar}-${kRet}-${mRet}`;
+    const cambioTipoViaje = window.verCambSelectsTipoViaje();
+    // 🛡️ ESCUDO ANTI-REPETICIÓN: Si los inputs son exactamente iguales a la última vez, frenamos
+    if (llaveActual !== window.EstadoCotizador.cacheUltimaLlaveManual ||
+            cambioTipoViaje) {
+        console.log("🔄 Cambios detectados en formulario manual. Procesando matemática...");
+        // Guardamos la nueva llave en el piloto para bloquear futuros clics repetidos
+        window.EstadoCotizador.cacheUltimaLlaveManual = llaveActual;
+        // SEGUNDO PASO: Si pasó el filtro anterior, procesas tus datos con total seguridad - AI
+        // Consolidación de kilómetros y tiempos matemáticos
+        const kmsVacio = parseFloat(kRec) + parseFloat(kRet);
+        const kmsCarga = parseFloat(kCar);
+        const minutosTotales = parseFloat(mRec) + parseFloat(mCar) + parseFloat(mRet);
+        const horasViaje = minutosTotales / 60;
+        // Ejecuta la matemática y actualiza window.EstadoCotizador.cacheTarifaBase
+        calcularCotizacionBase(kmsVacio, kmsCarga, horasViaje);
+        return true; // Retorna verdadero porque los datos en memoria siguen siendo válidos para renderizar
+    }
+    // La base vieja en caché sigue siendo válida para que el renderizador pueda procesar los extras.
+    console.log("🛑 Módulo Manual en reposo: Los datos son idénticos, no se recalcula base.");
+    return true;
 }
 
-
+document.getElementById("btn_calc_main").addEventListener("click", function(){
+    // Ejecuta el cálculo. Si la validación falla, se detiene inmediatamente.
+    const calculoExitoso = procesarMiFormularioYCalcular();
+    if (calculoExitoso) {
+        // Ejecuta la consolidación final de extras y pinta la pantalla (init.js)
+        window.renderizarCuadroResultado();
+    }
+});
