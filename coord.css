@@ -103,3 +103,45 @@ input:focus, select:focus {
     opacity: 1;
     transform: translateX(-50%) scale(1);
 }
+
+/* ==========================================================================
+   🎨 INDICADORES VISUALES DE COLOR PARA INPUTS (CONEXIÓN FORMULARIO-MAPA)
+   ========================================================================== */
+/* Estilo base común para darles una pequeña franja de color en el borde izquierdo */
+#puntoOrigen, #puntoA, #puntoB, #puntoAlterno {
+    border-left-width: 5px !important; /* Hace el borde izquierdo más grueso y llamativo */
+    transition: all 0.3s ease;
+}
+/* 🟢 PUNTO ORIGEN (Verde) */
+#puntoOrigen {
+    border-left-color: #22c55e !important; /* Verde Esmeralda */
+}
+#puntoOrigen:focus {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2); /* Resplandor verde al hacer foco */
+}
+/* 🟡 PUNTO A (Amarillo) */
+#puntoA {
+    border-left-color: #eab308 !important; /* Amarillo Ámbar */
+}
+#puntoA:focus {
+    border-color: #eab308;
+    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2); /* Resplandor amarillo al hacer foco */
+}
+/* 🔴 PUNTO B (Rojo) */
+#puntoB {
+    border-left-color: #ef4444 !important; /* Rojo Alerta */
+}
+#puntoB:focus {
+    border-color: #ef4444;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2); /* Resplandor rojo al hacer foco */
+}
+/* ⚪ PUNTO ALTERNO (Blanco / Gris Claro) */
+#puntoAlterno {
+    border-left-color: #cbd5e1 !important; /* Gris Claro / Blanco Tiza */
+    background-color: #fdfdfd; /* Fondo ligeramente diferenciado por ser opcional */
+}
+#puntoAlterno:focus {
+    border-color: #94a3b8;
+    box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.2); /* Resplandor gris elegante al hacer foco */
+}

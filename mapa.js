@@ -1,4 +1,7 @@
 /* global L */ 
+
+let lastPuntoActual = null;
+
 // MÓDULO DEL MAPA GRÁFICO (Lógica de Dibujo e Interacción)
 const ModuloMapa = {
     instanciaMapa: null,
@@ -21,13 +24,13 @@ const ModuloMapa = {
         this.instanciaMapa.on('click', (evento) => {
             const {lat, lng} = evento.latlng;
             this.actualizarMarcadorGrafico(lat, lng);
-            try{
+            try {
                 // El mapa va a mirar la ventana del iframe (donde corre coord.js)
                 const coordIframe = this.iframeCoord.contentWindow;
-                if(coordIframe.ultimoInputConFoco !== null){
+                if (coordIframe.ultimoInputConFoco !== null) {
                     this.enviarCoordenadas(lat, lng);
                 }
-            } catch (error){
+            } catch (error) {
                 console.error(error);
             }
         });
@@ -42,23 +45,26 @@ const ModuloMapa = {
     },
     enviarCoordenadas: function (lat, lng) {
         const datosCoordenadas = {
-        tipo: 'NUEVAS_COORDENADAS',
-        latitud: lat.toFixed(6),
-        longitud: lng.toFixed(6)
+            tipo: 'NUEVAS_COORDENADAS',
+            latitud: lat.toFixed(6),
+            longitud: lng.toFixed(6)
         };
+        //lastPuntoActual = datosCoordenadas;
         // Envía el mensaje de forma segura al iframe sin preocuparse por el foco para que coord lo gestione
         this.iframeCoord.contentWindow.postMessage(datosCoordenadas, '*');
     },
-    
+
     // 🚀 NUEVA FUNCIÓN: Obtiene la ubicación GPS y la envía al mapa e iframe
     obtenerUbicacionActual: function () {
-        if (!navigator.geolocation) {
-            alert("Tu navegador no soporta la obtención de geolocalización.");
-            return;
-        }
-        // Animación visual o mensaje de carga opcional aquí
-        navigator.geolocation.getCurrentPosition(
-            (posicion) => {
+        const coordIframe = this.iframeCoord.contentWindow;
+        if (coordIframe.ultimoInputConFoco !== null) {
+            if (!navigator.geolocation) {
+                alert("Tu navegador no soporta la obtención de geolocalización.");
+                return;
+            }
+            // Animación visual o mensaje de carga opcional aquí
+            navigator.geolocation.getCurrentPosition(
+                    (posicion) => {
                 const lat = posicion.coords.latitude;
                 const lng = posicion.coords.longitude;
                 // 1. Centra el mapa de Leaflet en la posición actual del usuario con zoom 16 (más cerca)
@@ -69,10 +75,21 @@ const ModuloMapa = {
                 this.enviarCoordenadas(lat, lng);
                 console.log("📍 Ubicación actual enviada con éxito:", lat, lng);
             },
-            (error) => {
-                switch(error.code) {
+                    (error) => {
+                switch (error.code) {
                     case error.PERMISSION_DENIED:
-                        alert("Acceso denegado. Por favor, habilita los permisos de ubicación en tu navegador.");
+                        // 🚀 MEJORA DE INTERFAZ: Instrucciones directas de reactivación rápida
+                        alert(
+                                "⚠️ ACCESO AL GPS BLOQUEADO\n\n" +
+                                "Para solucionarlo en 2 segundos desde esta misma pantalla\n\
+                                si no te da la opción automáticamente el navegador:\n\n" +
+                                "1. Toca el botón de los tres puntos verticales (...) en alguna esquina del navegador.\n" +
+                                "2. Entra a Configuración (o Ajustes).\n" +
+                                "3. Desliza y entra a Configuración de sitios.\n\n" +
+                                "4. Sigue las instrucciones de tu navegador o busca \n\
+                                Permisos (de tu navegador) -> Localización y actívalos.\n\n" +
+                                "¡Listo! Vuelve a presionar el botón de ubicación actual."
+                                );
                         break;
                     case error.POSITION_UNAVAILABLE:
                         alert("La información de tu ubicación no está disponible actualmente.");
@@ -82,12 +99,15 @@ const ModuloMapa = {
                         break;
                 }
             },
-            {
-                enableHighAccuracy: true, // Fuerza el uso de GPS si está disponible en móviles
-                timeout: 8000,            // Tiempo límite de espera: 8 segundos
-                maximumAge: 0             // No lee ubicaciones viejas guardadas en caché
-            }
-        );
+                    {
+                        enableHighAccuracy: true, // Fuerza el uso de GPS si está disponible en móviles
+                        timeout: 8000, // Tiempo límite de espera: 8 segundos
+                        maximumAge: 0             // No lee ubicaciones viejas guardadas en caché
+                    }
+            );
+        } else {
+            alert("Primero selecciona el campo que quieres llenar (base/origen, punto A o punto B");
+        }
     }
 };
 

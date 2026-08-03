@@ -95,9 +95,10 @@
                        placeholder="10,000" 
                        value="">
             </div>
-            <button class="main_btn btn_calc" 
-                    onclick="procesarRutasYCalcular()">
-                🔍 Calcular Ruta y Cotizar
+            <button id = "btn_calc_coord"
+                    class="main_btn btn_calc" 
+            ><!-- onclick="" -->
+                <span id="btn_text_render">🔍 Calcular Ruta y Cotizar</span>
             </button>
             <div class="loading" id="loadingMsg">🔄 Procesando circuito logístico...</div>
             <div class="result_box" id="resultBox">

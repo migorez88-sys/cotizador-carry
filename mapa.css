@@ -92,3 +92,44 @@ html, body {
         border-top: 2px solid #ccc; /* Línea divisoria horizontal en teléfonos */
     }
 }
+
+/* Estilo base para el contenedor del SVG */
+.custom-pin-icon {
+    background: transparent !important;
+    border: none !important;
+}
+.svg-marker-pin {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+/* 🔴 PIN ROJO */
+.pin-rojo .pin-body {
+    fill: #ef4444; /* Rojo vibrante */
+    stroke: #b91c1c;
+    stroke-width: 1;
+}
+/* 🟢 PIN VERDE */
+.pin-verde .pin-body {
+    fill: #22c55e; /* Verde ecología */
+    stroke: #15803d;
+    stroke-width: 1;
+}
+/* 🟡 PIN AMARILLO */
+.pin-amarillo .pin-body {
+    fill: #eab308; /* Amarillo ámbar */
+    stroke: #a16207;
+    stroke-width: 1;
+}
+/* ⚪ PIN BLANCO */
+.pin-blanco .pin-body {
+    fill: #f3f4f6; /* Gris muy claro / Blanco tiza */
+    stroke: #9ca3af;
+    stroke-width: 1.5;
+}
+/* 🔵 PIN AZUL (por defecto)) */
+.pin-azul .pin-body {
+    fill: #3b82f6;
+    stroke: #1d4ed8;
+    stroke-width: 1;
+}
