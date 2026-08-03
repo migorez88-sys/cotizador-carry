@@ -21,6 +21,7 @@ window.EstadoCotizador = {
     cacheCostosExtras: null,
     cacheTotalServicio: 0,
     cacheTipoCarga: 'suave',
+    cacheUltimoResultManual: null, // 🎯 PILOTO EXCLUSIVO PARA EL MÓDULO MANUAL
     cacheUltimoTotalPintado: null // 🎯 PILOTO VISUAL: Guarda el último valor real renderizado
 };
 
