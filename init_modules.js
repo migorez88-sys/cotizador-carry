@@ -22,7 +22,13 @@ window.EstadoCotizador = {
     cacheTotalServicio: 0,
     cacheTipoCarga: 'suave',
     cacheUltimoResultManual: null, // 🎯 PILOTO EXCLUSIVO PARA EL MÓDULO MANUAL
-    cacheUltimoTotalPintado: null // 🎯 PILOTO VISUAL: Guarda el último valor real renderizado
+    cacheUltimoTotalPintado: null, // 🎯 PILOTO VISUAL: Guarda el último valor real renderizado
+    //MATRIZ INFO PARA EL CONDUCTOR
+    InfoConductor:{
+        cacheCostoComb: 0,
+        cacheCostoCond: 0,
+        cacheRodCarry: 0
+    }
 };
 
 // CONTROL DE SELECTORES: Si SOLO cambiaron los selectores, no tocamos la API de OSM - AI
@@ -126,7 +132,10 @@ function renderizarCuadroResultado() {
     });
     const totalTarifaDisplay = document.getElementById('totalTarifa_display');
     if (totalTarifaDisplay) {
-        totalTarifaDisplay.innerText = formatoCOP.format(EstadoCotizador.cacheTotalServicio);
+        totalTarifaDisplay.innerText = formatoCOP.format(
+                EstadoCotizador.cacheTotalServicio < TARIFAS_CARRY.tar_min ? TARIFAS_CARRY.tar_min :
+                EstadoCotizador.cacheTotalServicio
+                );
     }
     const kmsViaje = EstadoCotizador.cachekmsVacio + EstadoCotizador.cachekmsCarga;
     const moduloActual = window.location.href;
@@ -138,7 +147,10 @@ function renderizarCuadroResultado() {
         🛣️ Distancia Total de Recorrido: ${kmsViaje.toFixed(2)} Km
         ⏱️ Tiempo Estimado de Recorrido: ${formatearTiempoLegible(EstadoCotizador.cachehorasViaje)}
         🤝 Cargue, Descargue / Ayudante: ${formatoCOP.format(EstadoCotizador.cacheCostosExtras)}
-        💵 VALOR TOTAL DEL SERVICIO: ${formatoCOP.format(EstadoCotizador.cacheTotalServicio)}`;
+        💵 VALOR TOTAL DEL SERVICIO: ${formatoCOP.format(
+            EstadoCotizador.cacheTotalServicio < TARIFAS_CARRY.tar_min ? TARIFAS_CARRY.tar_min :
+            EstadoCotizador.cacheTotalServicio
+            )}`;
     if (moduloActual.includes('coord.html'))
         summaryText += "\nEstimación de ruta generada mediante mapas de código abierto.";
     // Switcheo visual seguro de la interfaz
@@ -148,10 +160,20 @@ function renderizarCuadroResultado() {
     const summaryTextDisplay = document.getElementById('summaryText');
     if (summaryTextDisplay)
         summaryTextDisplay.innerText = summaryText;
+    const detalleRutaDisplay = document.getElementById('detalleRuta');
+    if (detalleRutaDisplay){
+        let detalleRuta = `Información para el conductor:
+            Costo combustible total de la ruta: ${formatoCOP.format(EstadoCotizador.InfoConductor.cacheCostoComb)}
+            Costo básico de rodamiento del vehículo: ${formatoCOP.format(EstadoCotizador.InfoConductor.cacheRodCarry)}
+            Costo labor del conductor: ${formatoCOP.format(EstadoCotizador.InfoConductor.cacheCostoCond)}
+            Costo real del viaje sin extras: ${formatoCOP.format(EstadoCotizador.cacheTarifaBase)}`;
+        detalleRutaDisplay.innerText = detalleRuta;
+    }
     resultBox.style.display = 'block';
     const btnCopy = document.getElementById('btnCopy');
     if (btnCopy)
         btnCopy.style.display = 'block';
+
 }
 
 // FUNCIÓN MATEMÁTICA GLOBAL DE LIQUIDACIÓN
@@ -165,26 +187,38 @@ function calcularCotizacionBase(kmsVacio, kmsCarga, horasViaje) {
     const factorTipoCarga = TARIFAS_CARRY.FACTORES_TIPOCARGA[tipoCarga]     || 1;
     const factorOperativo = TARIFAS_CARRY.FACTORES_OPERACION[tipoOperacion] || 1;
     const factorTrafico   = TARIFAS_CARRY.FACTORES_TRAFICO[tipoTrafico]     || 1;
+    
     // 4. MATEMÁTICA LOGÍSTICA DE LA SUZUKI CARRY
-    // costos de combustible
+    
+    // A. COSTOS DE COMBUSTIBLE
     const costoCombustible =
             (kmsVacio / TARIFAS_CARRY.cons) * TARIFAS_CARRY.gaso +
             (kmsCarga / TARIFAS_CARRY.cons) * TARIFAS_CARRY.gaso * factorTipoCarga;
-    /* costos rodamiento del vehículo */
-    // kms vacío equivale al recorrido hecho para ir a buscar la carga + el retorno al origen o a donde se elija
-    // 1. Costo base por los kilómetros recorridos (Vacío + Carga)
+    EstadoCotizador.InfoConductor.cacheCostoComb = costoCombustible;
+    
+    // B. COSTOS DE RODAMIENTO (Ajuste por Terreno/Trocha)
     const costRodaVacio = kmsVacio * TARIFAS_CARRY.km_base;
-    const costRodaCargaBase = kmsCarga * TARIFAS_CARRY.km_base;
-    // 2. Cálculo directo de recargos sobre la base de la carga sumamos los excesos de los factores de forma lineal
-    const factorTotalRecargos = 1 + ( (factorTipoCarga - 1) + (factorOperativo - 1) );
-    const costoRodamiento = costRodaVacio + (costRodaCargaBase * factorTotalRecargos);
-    /* conductor */
-    const costoLaborViaje = horasViaje * TARIFAS_CARRY.hora * factorOperativo;
-    // total acumulado afectado por el factor tráfico (hora pico / valle)
-    let totalTarifa = (costoCombustible + costoRodamiento + costoLaborViaje) * factorTrafico;
-    if (totalTarifa < TARIFAS_CARRY.tar_min) {
-        totalTarifa = TARIFAS_CARRY.tar_min;
+    // Si es trocha, el vehículo sufre tanto en el tramo vacío como cargado.
+    let factorRodamientoCarga = factorTipoCarga;
+    let factorRodamientoVacio = 1;
+    if (tipoOperacion === 'trocha') {
+        // Si es trocha, afectamos ambos tramos por el factor operativo debido al terreno
+        factorRodamientoVacio = factorOperativo;
+        factorRodamientoCarga = factorTipoCarga * factorOperativo; 
     }
+    const costoRodamiento = 
+            (costRodaVacio * factorRodamientoVacio) + 
+            (kmsCarga * TARIFAS_CARRY.km_base * factorRodamientoCarga);
+    EstadoCotizador.InfoConductor.cacheRodCarry = costoRodamiento;
+    
+    // C. CONDUCTOR (Mano de obra - Siempre afectado por el esfuerzo operativo)
+    const costoLaborViaje = horasViaje * TARIFAS_CARRY.hora * factorOperativo;
+    EstadoCotizador.InfoConductor.cacheCostoCond = costoLaborViaje;
+
+    // D. TOTALIZACIÓN
+    let totalTarifa = (costoCombustible + costoRodamiento + costoLaborViaje) * factorTrafico;
+    
+    //if (totalTarifa < TARIFAS_CARRY.tar_min) totalTarifa = TARIFAS_CARRY.tar_min;
     
     // 💾 Guardamos los insumos en el estado global para que el renderizador los tenga disponibles
     window.EstadoCotizador.cacheTarifaBase = totalTarifa;

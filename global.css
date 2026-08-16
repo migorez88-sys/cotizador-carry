@@ -28,6 +28,59 @@ body {
     width: 100%;
     max-width: 460px;         /* Tamaño compacto ideal para operar desde el carro */
 }
+
+/* Contenedor padre que empuja los controles al extremo superior derecho */
+.grupo_controles_derecha {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px; /* Separación horizontal entre la trocha y el tráfico */
+}
+
+/* Contenedor interno del control de trocha */
+.contenedor_trocha {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Estilo estético para la barra deslizable */
+.slider_trocha {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 70px; /* Tamaño compacto para que no sature la tarjeta */
+    height: 5px;
+    background: #ccc;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    transition: width 0.3s ease;
+}
+
+/* Animación opcional: se expande un poco al pasar el mouse para facilitar el uso */
+.slider_trocha:hover {
+    width: 90px;
+}
+
+/* El botón arrastrable del slider */
+.slider_trocha::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #8b5a2b; /* Color marrón alusivo a tierra/trocha */
+    cursor: pointer;
+}
+
 /* Títulos principales dentro de cualquier módulo */
 .tarjeta_modulo h1 {
     text-align: center;
