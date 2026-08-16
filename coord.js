@@ -13,88 +13,6 @@ let cacheRecog,
 // Declaramos la variable en la ventana global del iframe
 window.ultimoInputConFoco = null;
 
-//cajones de coordenadas o datos
-// Cuando el usuario haga clic o entre a un input, guardamos la referencia de ese cajón
-const inptsMapa = [
-    document.getElementById('puntoOrigen'),
-    document.getElementById('puntoA'),
-    document.getElementById('puntoB'),
-    document.getElementById('puntoAlterno')
-];
-inptsMapa.forEach(input => {
-    input.addEventListener("focus", (evento) => {
-        const idInputActivo = evento.target.id; // 'puntoOrigen', 'puntoA', etc.
-        ultimoInputConFoco = idInputActivo;
-        // 🚀 LÍNEA NUEVA: Le avisamos al mapa principal que cambiamos de cajón
-        window.parent.postMessage({
-            tipo: 'CAMBIO_DE_FOCO',
-            idInput: idInputActivo
-        }, '*');
-    });
-    input.addEventListener("input", function () {
-        const txtInpt = this.value.trim();
-        const datalist = document.getElementById('puntos_guardados');
-        // 1. Buscamos si el texto coincide con una opción del datalist
-        const opcionSeleccionada = Array.from(datalist.options).find(option => option.value === txtInpt);
-        // 2. 🔍 NUEVA VALIDACIÓN: Expresión regular para detectar si pegó coordenadas directas (Lat, Lng)
-        // Soporta números negativos, decimales con punto y espacios intermedios opcionales
-//        const patronCoordenadas = /^-?\d+\.\d+,\s*-?\d+\.\d+$/;
-//        const esCoordenadaPegada = patronCoordenadas.test(txtInpt);
-
-        if (opcionSeleccionada) {
-            // --- CASO A: Seleccionó de la lista de favoritos ---
-            this.dataset.geo = opcionSeleccionada.dataset.coordenadas;
-            const coords = extraerCoordenadas(this.dataset.geo);
-            if (coords) {
-                window.parent.postMessage({
-                    tipo: 'PIN_DESDE_DATALIST',
-                    idInput: this.id,
-                    latitud: coords.lat,
-                    longitud: coords.lng
-                }, '*');
-            }
-            return; // Operación exitosa, salimos del evento
-//            const [lat, lng] = this.dataset.geo.split(',').map(coord => parseFloat(coord.trim()));
-//            if (!isNaN(lat) && !isNaN(lng)) {
-//                window.parent.postMessage({
-//                    tipo: 'PIN_DESDE_DATALIST',
-//                    idInput: this.id,
-//                    latitud: lat,
-//                    longitud: lng
-//                }, '*');
-//            }
-        }
-        const coordsManuales = extraerCoordenadas(txtInpt);
-        if (coordsManuales) {
-            // --- 🚀 CASO B: El usuario PEGO coordenadas directas ---
-            console.log("🎯 Coordenadas manuales detectadas y validadas mediante pegado.");
-            // Sincronizamos el dataset con el mismo valor que pegó
-            this.dataset.geo = `${coordsManuales.lat}, ${coordsManuales.lng}`;
-            //this.dataset.geo = txtInpt;
-            // Separamos la latitud y longitud numéricas
-            //const [lat, lng] = txtInpt.split(',').map(coord => parseFloat(coord.trim()));
-            // Reutilizamos el mismo puente de postMessage para que el mapa pinte el pin al instante
-            window.parent.postMessage({
-                tipo: 'PIN_DESDE_DATALIST', // Tu mapa ya sabe procesar este tipo de mensaje perfectamente
-                idInput: this.id,
-                latitud: coordsManuales.lat,
-                longitud: coordsManuales.lng
-            }, '*');
-        } else {
-            // --- CASO C: El usuario está escribiendo texto libre (ej: una dirección manual) ---
-            // Limpiamos el dato previo para obligar al sistema a tratarlo como texto en la cotización
-            this.dataset.geo = "";
-            // 🚀 LÍNEA NUEVA: Si el campo quedó totalmente vacío, le ordenamos al mapa borrar el pin
-            if (txtInpt === "") {
-                window.parent.postMessage({
-                    tipo: 'BORRAR_PIN_INPUT',
-                    idInput: this.id // Envía 'puntoOrigen', 'puntoA', etc.
-                }, '*');
-            }
-        }
-    });
-});
-
 function extraerCoordenadas(texto) {
     const regex = /([-+]?\d+\.\d+)\s*,\s*([-+]?\d+\.\d+)/;
     const match = texto.match(regex);
@@ -170,13 +88,163 @@ function enlistarPuntosGuardados() {
     console.log("✅ Desplegable único compartido y listo para filtrar por nombre.");
 }
 
+// Función para convertir dirección de texto a coordenadas (Lat, Lng)
+async function buscarCoordenadasPorDireccion(direccionTexto) {
+    if (!direccionTexto.trim()) return null;
+    // 1. Dominio base correcto del servidor de búsqueda
+    const urlBase = "https://nominatim.openstreetmap.org/search";
+    // 2. Construcción limpia y segura de parámetros (evita errores de llaves o comillas)
+    const parametros = new URLSearchParams({
+        format: 'json',
+        limit: '1',
+        q: `${direccionTexto.trim()}, Cali, Colombia`
+    });
+    // 3. Unión perfecta de la URL
+    const urlFinal = `${urlBase}?${parametros.toString()}`;
+    try {
+        console.log("Petición correcta enviada a:", urlFinal);
+        const respuesta = await fetch(urlFinal);
+//        const respuesta = await fetch(urlFinal, {
+//            headers: { 'User-Agent': 'CotizadorCarryApp/1.0' }
+//        });
+        const datos = await respuesta.json();
+        // 4. Validación estricta del índice [0] en el arreglo de respuesta
+        if (datos && datos.length > 0) {
+            return `${datos[0].lat},${datos[0].lon}`;
+        }
+    } catch (error) {
+        console.error("Error en la geocodificación de OpenStreetMap:", error);
+    }
+    return null;
+}
+
+// GESTIÓN DE CAJONES DE DATOS
+const inptsMapa = [
+    document.getElementById('puntoOrigen'),
+    document.getElementById('puntoA'),
+    document.getElementById('puntoB'),
+    document.getElementById('puntoAlterno')
+];
+inptsMapa.forEach(input => {
+    // Cuando el usuario haga clic o entre a un input, guardamos la referencia de ese cajón
+    input.addEventListener("focus", (evento) => {
+        const idInputActivo = evento.target.id; // 'puntoOrigen', 'puntoA', etc.
+        ultimoInputConFoco = idInputActivo;
+        // 🚀 LÍNEA NUEVA: Le avisamos al mapa principal que cambiamos de cajón
+        window.parent.postMessage({
+            tipo: 'CAMBIO_DE_FOCO',
+            idInput: idInputActivo
+        }, '*');
+    });
+    input.addEventListener("input", function () {
+        const txtInpt = this.value.trim();
+        const datalist = document.getElementById('puntos_guardados');
+        // 1. Buscamos si el texto coincide con una opción del datalist
+        const opcionSeleccionada = Array.from(datalist.options).find(option => option.value === txtInpt);
+        // 2. 🔍 NUEVA VALIDACIÓN: Expresión regular para detectar si pegó coordenadas directas (Lat, Lng)
+        // Soporta números negativos, decimales con punto y espacios intermedios opcionales
+//        const patronCoordenadas = /^-?\d+\.\d+,\s*-?\d+\.\d+$/;
+//        const esCoordenadaPegada = patronCoordenadas.test(txtInpt);
+        if (opcionSeleccionada) {
+            // --- CASO A: Seleccionó de la lista de favoritos ---
+            this.dataset.geo = opcionSeleccionada.dataset.coordenadas;
+            const coords = extraerCoordenadas(this.dataset.geo);
+            if (coords) {
+                window.parent.postMessage({
+                    tipo: 'PIN_DESDE_DATALIST',
+                    idInput: this.id,
+                    latitud: coords.lat,
+                    longitud: coords.lng
+                }, '*');
+            }
+            return; // Operación exitosa, salimos del evento
+//            const [lat, lng] = this.dataset.geo.split(',').map(coord => parseFloat(coord.trim()));
+//            if (!isNaN(lat) && !isNaN(lng)) {
+//                window.parent.postMessage({
+//                    tipo: 'PIN_DESDE_DATALIST',
+//                    idInput: this.id,
+//                    latitud: lat,
+//                    longitud: lng
+//                }, '*');
+//            }
+        }
+        const coordsManuales = extraerCoordenadas(txtInpt);
+        if (coordsManuales) {
+            // --- 🚀 CASO B: El usuario PEGO coordenadas directas ---
+            console.log("🎯 Coordenadas manuales detectadas y validadas mediante pegado.");
+            // Sincronizamos el dataset con el mismo valor que pegó
+            this.dataset.geo = `${coordsManuales.lat}, ${coordsManuales.lng}`;
+            //this.dataset.geo = txtInpt;
+            // Separamos la latitud y longitud numéricas
+            //const [lat, lng] = txtInpt.split(',').map(coord => parseFloat(coord.trim()));
+            // Reutilizamos el mismo puente de postMessage para que el mapa pinte el pin al instante
+            window.parent.postMessage({
+                tipo: 'PIN_DESDE_DATALIST', // Tu mapa ya sabe procesar este tipo de mensaje perfectamente
+                idInput: this.id,
+                latitud: coordsManuales.lat,
+                longitud: coordsManuales.lng
+            }, '*');
+        } else {
+            // --- CASO C: El usuario está escribiendo texto libre (ej: una dirección manual) ---
+            // Limpiamos el dato previo para obligar al sistema a tratarlo como texto en la cotización
+            this.dataset.geo = "";
+            // 🚀 LÍNEA NUEVA: Si el campo quedó totalmente vacío, le ordenamos al mapa borrar el pin
+            if (txtInpt === "") {
+                window.parent.postMessage({
+                    tipo: 'BORRAR_PIN_INPUT',
+                    idInput: this.id // Envía 'puntoOrigen', 'puntoA', etc.
+                }, '*');
+            }
+        }
+    });
+});
+
 async function procesarMiFormularioYCalcular() {
     // inputs obligados
     const inptsReq = [
-        inptsMapa[0],
-        inptsMapa[1],
-        inptsMapa[2]
+        inptsMapa[0], // input punto origen o base
+        inptsMapa[1], // input punto A o recogida
+        inptsMapa[2]  // input punto B o destino
     ];
+    const inptPntOrgn = inptsMapa[0];
+    const inptPntA    = inptsMapa[1];
+    // 🔄 Lógica de equivalencia antes de validar
+    // CASO 1: Si llenó Origen pero dejó Recogida vacío
+    if (inptPntOrgn.value.trim() && !inptPntA.value.trim()) {
+        inptPntA.value = inptPntOrgn.value;
+        if (inptPntOrgn.dataset.geo) {
+            inptPntA.dataset.geo = inptPntOrgn.dataset.geo;
+        }
+        //console.log("🚚 Copiando Origen hacia Punto A (Recogida)");
+    }// CASO 2: Si dejó Origen vacío pero llenó Recogida (Punto A)
+    else if (!inptPntOrgn.value.trim() && inptPntA.value.trim()) {
+        inptPntOrgn.value = inptPntA.value;
+        if (inptPntA.dataset.geo) {
+            inptPntOrgn.dataset.geo = inptPntA.dataset.geo;
+        }
+        console.log("🚚 Copiando Punto A (Recogida) hacia Origen");
+    }
+    // 🔄 REHIDRATACIÓN INTELIGENTE (Soporta Direcciones y Coordenadas)
+    const esCoordenada = /^[-+]?([1-8]?\d(\.\d+)?|90(\.0+)?),\s*[-+]?(180(\.0+)?|((1[0-7]\d)|([1-9]?\d))(\.\d+)?)$/;
+    for (const inpt of inptsReq) {
+        if (inpt && inpt.value.trim() && !inpt.dataset.geo) {
+            const textoLimpio = inpt.value.trim();
+            if (esCoordenada.test(textoLimpio)) {
+                // Caso A: El usuario escribió coordenadas directamente. Las asignamos de inmediato.
+                inpt.dataset.geo = textoLimpio;
+                console.log(`Coordenada directa detectada y asignada a: ${inpt.id}`);
+            } else {
+                // Caso B: Es una dirección de texto. Consultamos a OpenStreetMap.
+                console.log(`Buscando dirección en internet para: ${textoLimpio}`);
+                const coordenadas = await buscarCoordenadasPorDireccion(textoLimpio);
+                if (coordenadas) {
+                    inpt.dataset.geo = coordenadas;
+                } else {
+                    inpt.dataset.geo = ""; // Dirección no encontrada
+                }
+            }
+        }
+    }
     // 1. Filtramos y obtenemos un arreglo con TODOS los inputs que estén vacíos
     let inputsVacios = inptsReq.filter(inpt => !(inpt.dataset.geo || inpt.value.trim()));
     // 2. Si hay al menos un input vacío, activamos la alerta global
@@ -193,10 +261,23 @@ async function procesarMiFormularioYCalcular() {
         inputsVacios[0].focus();
         return; // Detiene la ejecución del formulario porque faltan datos
     }
+    // 🛡️ CASO ESPECIAL: Tramo Opcional / Alterno (inptsMapa[3])
+    // También debemos procesar el punto alterno si el usuario escribió algo en él
+    const inptAlterno = inptsMapa[3];
+    if (inptAlterno && inptAlterno.value.trim() && !inptAlterno.dataset.geo) {
+        const textoLimpioAlt = inptAlterno.value.trim();
+        if (esCoordenada.test(textoLimpioAlt)) {
+            inptAlterno.dataset.geo = textoLimpioAlt;
+        } else {
+            const coordsAlt = await buscarCoordenadasPorDireccion(textoLimpioAlt);
+            inptAlterno.dataset.geo = coordsAlt || ""; 
+        }
+    }
     // el código continúa si todo lo esencial está lleno...
-    const pntOrigen = inptsMapa[0].dataset.geo || inptsMapa[0].value;
-    const puntoA    = inptsMapa[1].dataset.geo || inptsMapa[1].value;
-    const puntoB    = inptsMapa[2].dataset.geo || inptsMapa[2].value;
+    // Corregimos la asignación: pntOrigen, puntoA y puntoB ahora SIEMPRE tendrán coordenadas estrictas
+    const pntOrigen = inptsMapa[0].dataset.geo; // || inptsMapa[0].value;
+    const puntoA    = inptsMapa[1].dataset.geo; // || inptsMapa[1].value;
+    const puntoB    = inptsMapa[2].dataset.geo; // || inptsMapa[2].value;
     // preparamos consulta al servidor si hay tal caso
     let cambioPuntosViaje = false;
     try {// Solo va a internet si los puntos cambian o si no hay caché, comprobados uno por uno

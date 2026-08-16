@@ -19,13 +19,28 @@
                class="btn_home_tarjeta" 
                title="Volver al Inicio">🏠
             </a>
-            <select id="tipoTrafico_display" 
-                    class="select_trafic" 
-                    onchange="//procesarRutasYCalcular()" 
-                    title="Estado del Tráfico">
-                <option title="tráfico liviano" value="valle">🛣️</option>
-                <option title="tráfico pesado" value="pico">🚗</option>
-            </select>
+            <div class="grupo_controles_derecha">
+                <!-- Deslizador de Porcentaje de Trocha -->
+                <div class="contenedor_trocha" title="Porcentaje de trocha en el camino">
+                    <span id="valor_trocha">0%</span>
+                    <input type="range" 
+                           id="porcentajeTrocha" 
+                           min="0" 
+                           max="100" 
+                           value="0" 
+                           step="5"
+                           class="slider_trocha"
+                           oninput="document.getElementById('valor_trocha').innerText = this.value + '%'">
+                    <span class="icono_trocha">⛰️</span>
+                </div>
+                <select id="tipoTrafico_display" 
+                        class="select_trafic" 
+                        onchange=""
+                        title="Estado del Tráfico">
+                    <option title="tráfico liviano" value="valle">🛣️</option>
+                    <option title="tráfico pesado" value="pico">🚗</option>
+                </select>
+            </div>
             <h2>Cotizador Carry</h2>
 <!--        Control de enlistamiento de puntos predederminado o guardados   -->
             <datalist id="puntos_guardados"></datalist>
@@ -105,6 +120,7 @@
                 <div class="total_highlight" id="totalTarifa_display">$0</div>
                 <div class="summary_text" id="summaryText"></div>
                 <button class="main_btn btn_copy" id="btnCopy" onclick="copiarWhatsApp()">📋 Copiar para WhatsApp</button>
+            <div class="summary_text" id="detalleRuta"></div>
             </div>
         </div>
 <!--        <script defer src="./localforage.min.js"></script>-->

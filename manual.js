@@ -1,5 +1,16 @@
 /* Miguel González */
 
+//document.getElementById("porcentajeTrocha").addEventListener("onwheel", function () {
+//    // 1. Previene que la página web completa se mueva hacia arriba o abajo
+//    event.preventDefault();
+//    // 2. Detecta si la rueda va hacia arriba o hacia abajo (pasos de 5 en 5)
+//    let paso = event.deltaY < 0 ? 5 : -5;
+//    // 3. Calcula y aplica el nuevo valor limitándolo entre 0 y 100
+//    this.value = Math.max(0, Math.min(100, parseInt(this.value) + paso));
+//    // 4. Actualiza el texto visual de inmediato
+//    document.getElementById('valor_trocha').innerText = this.value + '%';
+//});
+
 function validarEscrituraCampos() { // - IA
     // 1. Crear un arreglo con los IDs exactos de tus 6 inputs numéricos
     const camposId = [
@@ -53,6 +64,7 @@ function procesarMiFormularioYCalcular(){
     const mCar = document.getElementById('minCargado').value.trim();
     const kRet = document.getElementById('kmsRetorno').value.trim();
     const mRet = document.getElementById('minRetorno').value.trim();
+    
     // 🎯 CREACIÓN DE LA LLAVE PILOTO (Une todos los datos separados por guiones)
     const llaveActual = `${kRec}-${mRec}-${kCar}-${mCar}-${kRet}-${mRet}`;
     const cambioTipoViaje = window.verCambSelectsTipoViaje();
